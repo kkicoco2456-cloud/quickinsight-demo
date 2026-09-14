@@ -1,0 +1,3982 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QuickInsight DataAgent Demo</title>
+  <style>
+    :root {
+      --nav: #121a2b;
+      --nav-2: #172235;
+      --nav-3: #223047;
+      --surface: #f4f7fb;
+      --panel: #ffffff;
+      --line: #dce3ee;
+      --line-soft: #e9eef6;
+      --text: #172033;
+      --muted: #677286;
+      --muted-2: #8a95a7;
+      --blue: #246fe5;
+      --blue-2: #e9f2ff;
+      --green: #0c9b63;
+      --green-2: #e9f8f1;
+      --yellow: #b47a05;
+      --yellow-2: #fff7df;
+      --red: #c64040;
+      --red-2: #fff0f0;
+      --shadow: 0 12px 36px rgba(18, 26, 43, 0.10);
+      --radius: 8px;
+      --topbar: 56px;
+      --sidebar: 240px;
+      --platform-menu: 364px;
+      --content-max: 1200px;
+      --page-margin: clamp(24px, 3vw, 36px);
+      --drawer: clamp(360px, 24vw, 400px);
+      font-family: Inter, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    body {
+      overflow: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: var(--topbar) 0 0;
+      z-index: 4;
+      background: rgba(18, 26, 43, 0.42);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 160ms ease;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .app {
+      display: grid;
+      grid-template-rows: var(--topbar) minmax(0, 1fr);
+      height: 100vh;
+      min-height: 640px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      height: var(--topbar);
+      padding: 0 18px;
+      background: #fff;
+      color: #172033;
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      color: inherit;
+      background: transparent;
+      transition: background 140ms ease, transform 140ms ease;
+    }
+
+    .icon-btn:hover {
+      background: #f4f7fb;
+    }
+
+    .icon-btn:active {
+      transform: translateY(1px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      min-width: 210px;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 19px;
+      white-space: nowrap;
+    }
+
+    .brand-mark {
+      width: 30px;
+      height: 30px;
+      flex: 0 0 auto;
+    }
+
+    .platform-menu {
+      position: fixed;
+      top: var(--topbar);
+      left: 0;
+      bottom: 0;
+      z-index: 6;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) 58px;
+      width: min(var(--platform-menu), 92vw);
+      background: #fff;
+      border-right: 1px solid var(--line);
+      box-shadow: 16px 0 32px rgba(18, 26, 43, 0.14);
+      transform: translateX(-100%);
+      transition: transform 180ms ease;
+    }
+
+    body.nav-open .platform-menu {
+      transform: translateX(0);
+    }
+
+    .platform-menu-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      column-gap: 36px;
+      align-content: start;
+      overflow: auto;
+      padding: 24px 18px 18px;
+    }
+
+    .platform-column {
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+      gap: 26px;
+    }
+
+    .platform-group {
+      min-width: 0;
+    }
+
+    .platform-group-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 10px;
+      color: #263147;
+      font-size: 14px;
+      line-height: 20px;
+      font-weight: 750;
+    }
+
+    .platform-group-title .icon {
+      width: 16px;
+      height: 16px;
+      color: #526077;
+    }
+
+    .platform-menu-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .platform-link {
+      min-height: 24px;
+      padding: 2px 0 2px 24px;
+      border-radius: 4px;
+      background: transparent;
+      color: #465266;
+      font-size: 12px;
+      line-height: 20px;
+      text-align: left;
+    }
+
+    .platform-link:hover,
+    .platform-link.active {
+      color: var(--blue);
+      font-weight: 750;
+    }
+
+    .platform-menu-footer {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-top: 1px solid var(--line-soft);
+      background: #fff;
+    }
+
+    .platform-footer-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: #2d3748;
+      background: transparent;
+      font-size: 14px;
+      line-height: 20px;
+      font-weight: 750;
+    }
+
+    .platform-footer-button:hover {
+      color: var(--blue);
+      background: #f7f9fc;
+    }
+
+    .top-spacer {
+      flex: 1;
+    }
+
+    .top-links {
+      display: flex;
+      align-items: center;
+      gap: 26px;
+      color: #172033;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .account {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      max-width: 240px;
+      padding-left: 14px;
+      border-left: 1px solid var(--line-soft);
+      font-weight: 600;
+    }
+
+    .avatar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #eef3ff;
+      color: #21304f;
+      font-size: 13px;
+      flex: 0 0 auto;
+    }
+
+    .account-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .main {
+      display: flex;
+      min-height: 0;
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      flex: 0 0 var(--sidebar);
+      width: var(--sidebar);
+      min-width: 0;
+      padding: 14px 12px;
+      background: #fff;
+      color: #172033;
+      box-shadow: inset -1px 0 var(--line-soft);
+    }
+
+    .new-chat {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      min-height: 48px;
+      padding: 0 12px;
+      border: 1px solid var(--blue);
+      border-radius: 8px;
+      background: var(--blue);
+      color: #fff;
+      font-size: 17px;
+      font-weight: 700;
+      box-shadow: 0 4px 10px rgba(36, 111, 229, 0.16);
+    }
+
+    .section-label {
+      margin: 26px 8px 10px;
+      color: #465266;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .history {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-height: 0;
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .history-item-wrap {
+      position: relative;
+    }
+    
+    .history-item {
+      display: grid;
+      grid-template-columns: 26px minmax(0, 1fr);
+      align-items: center;
+      gap: 8px;
+      min-height: 42px;
+      width: 100%;
+      padding: 0 32px 0 8px;
+      border-radius: 6px;
+      background: transparent;
+      color: #253149;
+      text-align: left;
+    }
+
+    .history-item:hover,
+    .history-item.active {
+      background: #f4f7fb;
+    }
+
+    .history-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 5px;
+      background: #eef3ff;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .history-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 14px;
+      font-weight: 650;
+      user-select: none;
+    }
+
+    .history-rename-input {
+      width: 100%;
+      background: #fff;
+      border: 1px solid var(--blue);
+      color: #172033;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .history-more-btn {
+      position: absolute;
+      right: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 24px;
+      height: 24px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      color: #8a95a7;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    .history-item-wrap:hover .history-more-btn {
+      display: flex;
+    }
+
+    .history-more-btn:hover {
+      background: #eef3ff;
+      color: var(--blue);
+    }
+
+    .history-dropdown {
+      position: fixed;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      min-width: 140px;
+      box-shadow: 0 8px 24px rgba(18, 26, 43, 0.14);
+      padding: 6px 0;
+    }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 16px;
+      color: #253149;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .dropdown-item:hover {
+      background: #f4f7fb;
+    }
+
+    .dropdown-item svg {
+      width: 16px;
+      height: 16px;
+    }
+    .dropdown-item.danger {
+      color: #ff6b6b;
+    }
+    .dropdown-item.danger:hover {
+      background: rgba(255, 107, 107, 0.1);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-rows: 54px minmax(0, 1fr);
+      flex: 1 1 auto;
+      min-width: 0;
+      min-height: 0;
+      background: var(--surface);
+    }
+
+    .context-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      padding: 0 22px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    .topic-pill {
+      display: inline-flex;
+      align-items: center;
+      min-width: 0;
+      gap: 7px;
+      height: 34px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+      color: #253149;
+      font-weight: 700;
+      box-shadow: 0 1px 2px rgba(18, 26, 43, 0.04);
+    }
+
+    .topic-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 4px var(--green-2);
+      flex: 0 0 auto;
+    }
+
+    .topic-name,
+    .topic-path {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .topic-path {
+      color: #586274;
+      font-weight: 600;
+    }
+
+    .dictionary-open {
+      min-width: 88px;
+      height: 34px;
+      padding: 0 12px;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--blue);
+      font-weight: 800;
+      margin-left: auto;
+    }
+
+    .dictionary-open:hover {
+      background: var(--blue-2);
+    }
+
+    .context-empty {
+      color: var(--muted);
+      font-weight: 650;
+    }
+
+    .stage {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) var(--drawer);
+      min-width: 0;
+      min-height: 0;
+      position: relative;
+      overflow: hidden;
+      transition: grid-template-columns 180ms ease;
+    }
+
+    .stage.drawer-closed {
+      grid-template-columns: minmax(0, 1fr) 0;
+    }
+
+    .chat-column {
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      min-width: 0;
+      min-height: 0;
+      position: relative;
+      background: var(--surface);
+    }
+
+    .chat-scroll {
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 42px var(--page-margin) 26px;
+    }
+
+    .topic-chooser {
+      width: 100%;
+      max-width: 764px;
+      margin: 96px auto 0;
+      padding: 34px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 10px 28px rgba(18, 26, 43, 0.07);
+    }
+
+    .topic-title {
+      margin: 0 0 16px;
+      font-size: 24px;
+      line-height: 28px;
+      color: #172033;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .topic-subtitle {
+      margin: 0 0 16px;
+      font-size: 20px;
+      line-height: 24px;
+      color: #555a65;
+      font-weight: 700;
+    }
+
+    .tree {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      color: #3a4252;
+      font-size: 18px;
+      line-height: 26px;
+    }
+
+    .tree-row {
+      display: flex;
+      align-items: center;
+      min-height: 26px;
+      gap: 8px;
+    }
+
+    .tree-row.level-1 {
+      padding-left: 37px;
+    }
+
+    .tree-row.level-2 {
+      padding-left: 84px;
+    }
+
+    .domain-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 26px;
+      padding: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: #3a4252;
+      font-size: 18px;
+      line-height: 26px;
+      text-align: left;
+    }
+
+    .domain-toggle:hover {
+      color: #1f2937;
+    }
+
+    .topic-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--blue);
+      font-size: 18px;
+      font-weight: 750;
+      text-align: left;
+      line-height: 26px;
+      overflow-wrap: anywhere;
+    }
+
+    .topic-link:hover {
+      color: #145fc9;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .carets {
+      color: var(--blue);
+      font-size: 16px;
+      line-height: 16px;
+      flex: 0 0 auto;
+    }
+
+    .root-label {
+      padding-left: 0;
+    }
+
+    .message-stack {
+      width: 100%;
+      max-width: var(--content-max);
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .message-row {
+      display: grid;
+      grid-template-columns: 40px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+      min-width: 0;
+      width: 100%;
+    }
+
+    .message-row.user {
+      display: flex;
+      justify-content: flex-end;
+      width: 100%;
+    }
+
+    .agent-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 7px;
+      background: #dff6ee;
+      color: #11805a;
+      font-weight: 800;
+    }
+
+    .bubble {
+      max-width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 1px 2px rgba(18, 26, 43, 0.04);
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .user-bubble {
+      max-width: min(520px, 100%);
+      width: fit-content;
+      word-break: break-word;
+      white-space: pre-wrap;
+      min-height: 46px;
+      padding: 13px 18px;
+      border-radius: 8px 8px 2px 8px;
+      background: var(--blue);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.55;
+      box-shadow: 0 8px 20px rgba(36, 111, 229, 0.18);
+    }
+
+    .warm-card {
+      padding: 20px 22px 22px;
+    }
+
+    .warm-card h2 {
+      margin: 0 0 14px;
+      font-size: 18px;
+      line-height: 1.4;
+    }
+
+    .warm-card p {
+      margin: 0 0 18px;
+      color: #485365;
+      line-height: 1.6;
+      font-weight: 650;
+    }
+
+    .suggestion-list {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 12px;
+      border-top: 1px solid var(--line-soft);
+      padding-top: 16px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+    .suggestion-list::-webkit-scrollbar {
+      height: 6px;
+      display: block;
+    }
+    .suggestion-list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .suggestion-list::-webkit-scrollbar-thumb {
+      background: #e1e7f0;
+      border-radius: 4px;
+    }
+    .suggestion-list::-webkit-scrollbar-thumb:hover {
+      background: #c3cedf;
+    }
+
+    .suggestion {
+      flex: 0 0 auto;
+      min-height: 42px;
+      padding: 0 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fafcff;
+      color: #253149;
+      font-weight: 700;
+      box-shadow: 0 1px 1px rgba(18, 26, 43, 0.04);
+      white-space: nowrap;
+    }
+
+    .suggestion:hover {
+      border-color: #b8cef5;
+      color: var(--blue);
+      background: #fff;
+    }
+
+    .answer {
+      overflow: hidden;
+    }
+
+    .answer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 54px;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .answer-state {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 17px;
+      font-weight: 850;
+    }
+
+    .duration {
+      color: #6c7688;
+      font-size: 15px;
+      font-weight: 750;
+    }
+
+    .link-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 34px;
+      padding: 0 10px;
+      border-radius: 6px;
+      background: transparent;
+      color: #2a3345;
+      font-weight: 750;
+    }
+
+    .link-button:hover {
+      background: #f2f5fa;
+    }
+
+    .link-button .icon {
+      width: 15px;
+      height: 15px;
+      stroke-width: 2.4;
+    }
+
+    .answer-body {
+      padding: 22px 18px 22px;
+    }
+
+    .answer-title {
+      margin: 0 0 16px;
+      font-size: 18px;
+      line-height: 1.45;
+      font-weight: 850;
+    }
+
+    .ai-inference-hint {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 0 0 16px;
+      padding: 14px 16px;
+      border-radius: 6px;
+      background: #fef8ec;
+      color: #b47a05;
+      font-size: 13px;
+      font-weight: 650;
+      border: 1px solid #fdeec8;
+      line-height: 1.5;
+    }
+    
+    .ai-inference-hint strong {
+      font-weight: 800;
+      color: #9a6600;
+    }
+
+    .ai-inference-hint p {
+      margin: 0;
+    }
+
+    .ai-notice-title {
+      display: block;
+      margin: 0 0 8px;
+    }
+
+    .ai-notice-lines {
+      display: grid;
+      gap: 8px;
+    }
+
+    .ai-notice-lines.with-summary {
+      margin-top: 8px;
+    }
+
+    .out-scope-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #d93026;
+      font-weight: 800;
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+    .out-scope-desc {
+      color: #333;
+      font-size: 14px;
+      line-height: 1.6;
+      margin: 0 0 16px;
+    }
+    .out-scope-suggestions {
+      background: #f4f6f9;
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .suggest-title {
+      font-size: 13px;
+      color: #555;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+    .suggest-item {
+      color: var(--blue);
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      cursor: pointer;
+      line-height: 1.5;
+    }
+    .suggest-item:last-child {
+      margin-bottom: 0;
+    }
+    .suggest-item:hover {
+      text-decoration: underline;
+    }
+
+    .analysis-block {
+      margin-bottom: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfdff;
+      overflow: hidden;
+    }
+
+    .analysis-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 48px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--line-soft);
+      background: #f8fbff;
+      font-weight: 850;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .analysis-toggle-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .analysis-toggle-label .icon {
+      width: 16px;
+      height: 16px;
+      stroke-width: 2.4;
+    }
+
+    .analysis-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .blue-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--blue);
+      box-shadow: 0 0 0 4px var(--blue-2);
+    }
+
+    .param-grid-wrap {
+      display: none;
+    }
+    .analysis-block.is-open .param-grid-wrap {
+      display: block;
+    }
+
+    .analysis-toggle-label .toggle-text::before {
+      content: "展开";
+    }
+    .analysis-block.is-open .analysis-toggle-label .toggle-text::before {
+      content: "收起";
+    }
+
+    .analysis-toggle-label .icon-collapse {
+      display: none;
+    }
+    .analysis-block.is-open .analysis-toggle-label .icon-expand {
+      display: none;
+    }
+    .analysis-block.is-open .analysis-toggle-label .icon-collapse {
+      display: flex;
+    }
+    .icon-expand, .icon-collapse {
+      display: flex;
+      align-items: center;
+    }
+
+    .param-grid {
+      display: grid;
+      grid-template-columns: 72px minmax(0, 1fr);
+      gap: 10px 14px;
+      padding: 14px;
+    }
+
+    .param-label {
+      color: #596477;
+      font-weight: 800;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 6px;
+      background: var(--green-2);
+      color: #2d624e;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    .tag.blue {
+      background: var(--blue-2);
+      color: #245cad;
+    }
+
+    .tag.gray {
+      background: #eef2f7;
+      color: #566175;
+    }
+
+    .insight-box {
+      display: grid;
+      grid-template-columns: 86px minmax(0, 1fr);
+      gap: 8px 14px;
+      margin: 0 0 16px;
+      padding: 14px 16px;
+      border: 1px solid #cfe2ff;
+      border-radius: 8px;
+      background: #f5faff;
+      line-height: 1.7;
+    }
+
+    .insight-label {
+      color: #1c65c9;
+      font-weight: 850;
+    }
+
+    .viz-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 4px 0 8px;
+    }
+
+    .metric-name {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #334157;
+      font-weight: 850;
+    }
+
+    .tiny-line {
+      width: 18px;
+      height: 4px;
+      border-radius: 4px;
+      background: #5b9df5;
+    }
+
+    .view-tabs {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #f7f9fc;
+      overflow: hidden;
+    }
+
+    .view-tab {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 46px;
+      height: 34px;
+      border-right: 1px solid var(--line);
+      background: transparent;
+      color: #617085;
+    }
+
+    .view-tab:last-child {
+      border-right: 0;
+    }
+
+    .view-tab.active {
+      background: #fff;
+      color: var(--blue);
+      box-shadow: inset 0 -2px 0 var(--blue);
+    }
+
+    .metric-row {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin: 8px 0 4px;
+    }
+
+    .metric-value {
+      font-size: 34px;
+      line-height: 1.2;
+      font-weight: 900;
+      color: #141d31;
+    }
+
+    .unit {
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .up {
+      color: #c95362;
+      font-weight: 850;
+    }
+
+    .chart-wrap {
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .chart-svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 320px;
+    }
+
+    .chart-point {
+      cursor: pointer;
+      transition: r 160ms ease, stroke-width 160ms ease, filter 160ms ease;
+    }
+
+    .chart-point:hover {
+      r: 7;
+      stroke-width: 5;
+      filter: drop-shadow(0 2px 6px rgba(62, 140, 240, 0.28));
+    }
+
+    .chart-tooltip {
+      position: fixed;
+      z-index: 1000;
+      min-width: 168px;
+      max-width: 280px;
+      padding: 10px 12px;
+      border: 1px solid #dce3ee;
+      border-radius: 6px;
+      background: #fff;
+      box-shadow: 0 4px 16px rgba(18, 26, 43, 0.10);
+      opacity: 0;
+      pointer-events: none;
+      transform: translate3d(0, 0, 0);
+      transition: opacity 120ms ease;
+      white-space: nowrap;
+    }
+
+    .chart-tooltip.show {
+      opacity: 1;
+    }
+
+    .chart-tooltip-context {
+      color: #677286;
+      font-size: 12px;
+      line-height: 18px;
+      font-weight: 650;
+    }
+
+    .chart-tooltip-metric {
+      margin-top: 4px;
+      color: #172033;
+      font-size: 13px;
+      line-height: 20px;
+      font-weight: 650;
+    }
+
+    .chart-tooltip-value {
+      font-weight: 850;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: 14px;
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line-soft);
+      text-align: left;
+      vertical-align: middle;
+      line-height: 1.45;
+    }
+
+    .data-table th {
+      background: #f0f3f8;
+      color: #3c4658;
+      font-weight: 850;
+    }
+
+    .data-table tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .number {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .sql-block {
+      margin: 0;
+      padding: 16px;
+      border-radius: 8px;
+      background: #111827;
+      color: #d8e5ff;
+      overflow: auto;
+      font-size: 13px;
+      line-height: 1.7;
+      white-space: pre;
+    }
+
+    .process-step {
+      display: grid;
+      grid-template-columns: 22px minmax(0, 1fr);
+      gap: 10px;
+      padding: 12px 0;
+      color: #485365;
+      line-height: 1.55;
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    .process-step:last-child {
+      border-bottom: 0;
+    }
+
+    .step-index {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--blue-2);
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .alert {
+      display: grid;
+      grid-template-columns: 36px minmax(0, 1fr);
+      gap: 12px;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      line-height: 1.65;
+      background: #fff;
+    }
+
+    .alert h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+
+    .alert p {
+      margin: 0;
+      color: #4f5a6d;
+    }
+
+    .alert.warning {
+      border-color: #f0d38a;
+      background: var(--yellow-2);
+    }
+
+    .alert.danger {
+      border-color: #f0b9b9;
+      background: var(--red-2);
+    }
+
+    .alert.neutral {
+      background: #f7f9fc;
+    }
+
+    .alert-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 7px;
+      background: #fff;
+      color: currentColor;
+    }
+
+    .warning .alert-icon {
+      color: var(--yellow);
+    }
+
+    .danger .alert-icon {
+      color: var(--red);
+    }
+
+    .result-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .mini-result {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .mini-result-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 42px;
+      padding: 0 14px;
+      background: #f8fbff;
+      border-bottom: 1px solid var(--line-soft);
+      font-weight: 850;
+    }
+
+    .mini-result-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+      min-height: 42px;
+      padding: 0 14px;
+      background: #f8fbff;
+      font-weight: 850;
+      text-align: left;
+    }
+
+    .mini-result-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #24533e;
+    }
+
+    .mini-result-status .icon {
+      width: 16px;
+      height: 16px;
+      stroke-width: 2.4;
+    }
+
+    .mini-result-body {
+      padding: 14px;
+      color: #4f5a6d;
+      line-height: 1.7;
+    }
+
+    .mini-result-panel {
+      border-top: 1px solid var(--line-soft);
+      padding: 16px;
+    }
+
+    .mini-result-panel .answer-title {
+      margin-top: 0;
+    }
+
+    .small-bar-chart {
+      display: grid;
+      gap: 18px;
+      margin-top: 22px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 120px minmax(0, 1fr) 72px;
+      align-items: center;
+      gap: 16px;
+      min-height: 28px;
+      font-size: 15px;
+      font-weight: 750;
+      color: #172033;
+    }
+
+    .bar-track {
+      height: 10px;
+      border-radius: 999px;
+      background: #eaf0f7;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: #3e8cf0;
+      transition: width 220ms ease;
+    }
+
+    .bar-value {
+      text-align: right;
+      font-size: 15px;
+      font-weight: 850;
+      color: #172033;
+    }
+
+    .answer-feedback {
+      display: grid;
+      gap: 10px;
+      padding: 9px 18px;
+      border-top: 1px solid var(--line-soft);
+      background: #fff;
+    }
+
+    .feedback-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 32px;
+    }
+
+    .feedback-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      background: transparent;
+      color: #5f6b7e;
+      transition: background 140ms ease, color 140ms ease, transform 140ms ease;
+    }
+
+    .feedback-button:hover {
+      background: #f1f5fb;
+      color: #233049;
+    }
+
+    .feedback-button.active {
+      background: var(--blue-2);
+      color: var(--blue);
+    }
+
+    .feedback-button:active {
+      transform: translateY(1px);
+    }
+
+    .feedback-hint {
+      margin-left: 4px;
+      color: var(--muted-2);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .feedback-comment {
+      display: grid;
+      gap: 10px;
+      padding: 10px;
+      border: 1px solid var(--line-soft);
+      border-radius: 8px;
+      background: #f8fbff;
+    }
+
+    .comment-input-wrap {
+      position: relative;
+      width: 100%;
+    }
+
+    .feedback-comment textarea {
+      width: 100%;
+      min-height: 76px;
+      resize: none;
+      overflow: hidden;
+      padding: 12px 12px 48px 12px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      outline: 0;
+      color: #263147;
+      line-height: 1.55;
+      background: #fff;
+    }
+
+    .feedback-comment textarea:focus {
+      border-color: #a9c7fb;
+      box-shadow: 0 0 0 3px var(--blue-2);
+    }
+
+    .comment-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+    }
+
+    .comment-save {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      min-width: 82px;
+      height: 32px;
+      padding: 0 16px;
+      border-radius: 6px;
+      background: var(--blue);
+      color: #fff;
+      font-weight: 850;
+      box-shadow: 0 4px 10px rgba(36, 111, 229, 0.15);
+      transition: background 140ms ease, color 140ms ease, box-shadow 140ms ease;
+    }
+
+    .comment-save:hover {
+      background: #1e61ca;
+    }
+
+    .comment-save:disabled {
+      cursor: not-allowed;
+      background: #d8e0eb;
+      color: #8b96a8;
+      box-shadow: none;
+    }
+
+    .saved-comments-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1px solid var(--line-soft);
+      border-radius: 8px;
+      background: #f8fbff;
+    }
+    
+    .saved-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .saved-item {
+      color: #566175;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .saved-item .time {
+      color: #9aa4b7;
+      font-size: 12px;
+      margin-left: 6px;
+    }
+
+    .composer-wrap {
+      padding: 14px var(--page-margin) 18px;
+      background: linear-gradient(180deg, rgba(244, 247, 251, 0), #fff 18%);
+      min-width: 0;
+    }
+
+    .composer-wrap[hidden] {
+      display: none;
+    }
+
+    .quick-chips {
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: 8px;
+      width: 100%;
+      max-width: var(--content-max);
+      margin: 0 auto 10px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+    .quick-chips::-webkit-scrollbar {
+      height: 6px;
+      display: block; 
+    }
+    .quick-chips::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .quick-chips::-webkit-scrollbar-thumb {
+      background: #dce3ee;
+      border-radius: 4px;
+    }
+    .quick-chips::-webkit-scrollbar-thumb:hover {
+      background: #b9c7df;
+    }
+
+    .chip {
+      flex: 0 0 auto;
+      min-height: 30px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: #526077;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .chip:hover {
+      color: var(--blue);
+      border-color: #c7d9fa;
+      background: var(--blue-2);
+    }
+
+    .composer {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 102px;
+      gap: 12px;
+      width: 100%;
+      max-width: var(--content-max);
+      min-height: 92px;
+      margin: 0 auto;
+      padding: 12px;
+      border: 1px solid #cad3df;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 8px 22px rgba(18, 26, 43, 0.08);
+    }
+
+    .composer-field {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .composer textarea {
+      width: 100%;
+      height: 68px;
+      min-height: 68px;
+      max-height: 68px;
+      resize: none;
+      border: 0;
+      outline: 0;
+      padding: 4px 2px;
+      color: #263147;
+      line-height: 1.6;
+    }
+
+    .send {
+      align-self: end;
+      height: 42px;
+      border-radius: 8px;
+      background: var(--blue);
+      color: #fff;
+      font-weight: 850;
+      box-shadow: 0 8px 18px rgba(36, 111, 229, 0.18);
+    }
+
+    .send:hover {
+      background: #1e61ca;
+    }
+
+    .dictionary {
+      display: grid;
+      grid-template-rows: 54px auto minmax(0, 1fr);
+      min-width: 0;
+      min-height: 0;
+      border-left: 1px solid var(--line);
+      background: #fff;
+      box-shadow: -8px 0 22px rgba(18, 26, 43, 0.05);
+      transform: none;
+      transition: opacity 160ms ease;
+      overflow: hidden;
+    }
+
+    .stage.drawer-closed .dictionary {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .drawer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--line-soft);
+      font-size: 17px;
+      font-weight: 850;
+    }
+
+    .drawer-head .icon-btn {
+      color: #273349;
+    }
+
+    .drawer-search {
+      padding: 14px 18px;
+    }
+
+    .search-field {
+      position: relative;
+    }
+
+    .drawer-search input {
+      width: 100%;
+      height: 40px;
+      padding: 0 42px 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      outline: 0;
+      color: #263147;
+    }
+
+    .drawer-search input:focus {
+      border-color: #a9c7fb;
+      box-shadow: 0 0 0 3px var(--blue-2);
+    }
+
+    .dict-clear {
+      position: absolute;
+      top: 50%;
+      right: 8px;
+      width: 28px;
+      height: 28px;
+      transform: translateY(-50%);
+      border-radius: 6px;
+      background: transparent;
+      color: #273349;
+    }
+
+    .dict-clear:hover {
+      background: #f2f5fa;
+    }
+
+    .dict-clear[hidden] {
+      display: none;
+    }
+
+    .dict-table-wrap {
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 0 18px 18px;
+    }
+
+    .dictionary[aria-label="分析过程"] .dict-table-wrap {
+      padding-top: 18px;
+    }
+
+    .drawer-copy {
+      margin-bottom: 12px;
+      padding: 14px;
+      border: 1px solid var(--line-soft);
+      border-radius: 8px;
+      background: #f8fbff;
+      line-height: 1.6;
+    }
+
+    .drawer-copy h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+      line-height: 1.45;
+    }
+
+    .drawer-copy p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .analysis-process-list {
+      padding: 2px 2px 8px;
+    }
+
+    .dict-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--line-soft);
+      table-layout: fixed;
+      font-size: 14px;
+    }
+
+    .dict-table th,
+    .dict-table td {
+      padding: 14px 12px;
+      border-bottom: 1px solid var(--line-soft);
+      border-right: 1px solid var(--line-soft);
+      text-align: left;
+      vertical-align: top;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .dict-table th:last-child,
+    .dict-table td:last-child {
+      border-right: 0;
+    }
+
+    .dict-table th {
+      background: #e5e7eb;
+      color: #414b5c;
+      font-weight: 850;
+    }
+
+    .field-name {
+      width: 34%;
+      font-weight: 800;
+      color: #4c5668;
+      vertical-align: middle;
+    }
+
+    .field-name.field-match {
+      color: var(--blue);
+    }
+
+    .definition-list {
+      display: grid;
+      gap: 6px;
+      color: #1f2937;
+      font-weight: 650;
+    }
+
+    .definition-item {
+      margin: 0;
+    }
+
+    .definition-label {
+      color: #4c5668;
+      font-weight: 850;
+    }
+
+    .empty-dict {
+      padding: 24px;
+      color: var(--muted);
+      text-align: center;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+    }
+
+    .loading-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 58px;
+      padding: 0 18px;
+      font-weight: 850;
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 3px solid #d7e6ff;
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 820ms linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .toast {
+      position: fixed;
+      left: var(--toast-left, 50%);
+      bottom: 22px;
+      transform: translateX(-50%) translateY(12px);
+      z-index: 10;
+      min-height: 40px;
+      max-width: min(520px, calc(100vw - 32px));
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: rgba(18, 26, 43, 0.92);
+      color: #fff;
+      font-weight: 700;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .icon {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      flex: 0 0 auto;
+    }
+
+    @media (max-width: 1487px) {
+      :root {
+        --content-max: calc(100vw - var(--sidebar) - (var(--page-margin) * 2));
+        --page-margin: 24px;
+      }
+    }
+
+    @media (max-width: 1280px) {
+      :root {
+        --sidebar: 220px;
+        --drawer: 340px;
+      }
+
+      .stage {
+        grid-template-columns: minmax(0, 1fr) var(--drawer);
+      }
+
+      .chat-scroll {
+        padding: 32px 24px 24px;
+      }
+
+      .composer-wrap {
+        padding-left: 24px;
+        padding-right: 24px;
+      }
+    }
+
+    @media (max-width: 1080px) {
+      :root {
+        --drawer: 360px;
+      }
+    }
+
+    @media (max-width: 860px) {
+      :root {
+        --content-max: 100%;
+        --page-margin: 14px;
+      }
+
+      body {
+        overflow: auto;
+        overflow-x: hidden;
+      }
+
+      .app {
+        min-height: 100vh;
+        height: auto;
+      }
+
+      .top-links,
+      .account-name {
+        display: none;
+      }
+
+      .brand {
+        min-width: 0;
+      }
+
+      .main {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: fixed;
+        top: var(--topbar);
+        left: 0;
+        bottom: 0;
+        z-index: 6;
+        display: flex;
+        width: min(300px, 84vw);
+        transform: translateX(-100%);
+        transition: transform 180ms ease;
+        box-shadow: var(--shadow);
+      }
+
+      body.nav-open {
+        overflow: hidden;
+      }
+
+      body.nav-open::before {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      body.nav-open .sidebar {
+        transform: translateX(0);
+      }
+
+      .workspace {
+        min-height: calc(100vh - var(--topbar));
+      }
+
+      .context-bar {
+        gap: 8px;
+        padding: 0 10px;
+      }
+
+      .topic-pill {
+        flex: 1 1 auto;
+        min-width: 0;
+        padding: 0 10px;
+      }
+
+      .topic-path {
+        display: none;
+      }
+
+      .dictionary-open {
+        min-width: 74px;
+        padding: 0 8px;
+        white-space: nowrap;
+      }
+
+      .stage {
+        grid-template-columns: minmax(0, 1fr) min(340px, 46vw);
+      }
+
+      .stage.drawer-closed {
+        grid-template-columns: minmax(0, 1fr) 0;
+      }
+
+      .tree-row {
+        align-items: flex-start;
+      }
+
+      .chat-scroll {
+        width: 100%;
+        max-width: 100vw;
+        min-width: 0;
+        overflow-x: hidden;
+        padding: 22px 14px 18px;
+      }
+
+      .topic-chooser {
+        width: min(100%, calc(100vw - 28px));
+        margin-top: 28px;
+        padding: 24px 20px;
+      }
+
+      .composer-wrap {
+        width: 100%;
+        max-width: 100vw;
+        min-width: 0;
+        overflow-x: hidden;
+        padding: 12px 12px 16px;
+      }
+
+      .message-stack,
+      .quick-chips,
+      .composer {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+      }
+
+      .message-row,
+      .message-row.user,
+      .bubble,
+      .warm-card,
+      .answer {
+        min-width: 0;
+      }
+
+      .bubble {
+        width: 100%;
+      }
+
+      .user-bubble,
+      .answer-title,
+      .warm-card h2,
+      .warm-card p {
+        overflow-wrap: anywhere;
+      }
+
+      .tag {
+        white-space: normal;
+        overflow-wrap: anywhere;
+      }
+
+      .composer {
+        grid-template-columns: 1fr;
+      }
+
+      .composer-field {
+        min-width: 0;
+      }
+
+      .send {
+        width: 100%;
+      }
+
+      .message-row {
+        grid-template-columns: 34px minmax(0, 1fr);
+      }
+
+      .agent-badge {
+        width: 32px;
+        height: 32px;
+      }
+
+      .param-grid,
+      .insight-box {
+        grid-template-columns: 1fr;
+      }
+
+      .metric-value {
+        font-size: 28px;
+      }
+
+      .chart-svg {
+        height: 240px;
+      }
+
+      body.nav-open .sidebar {
+        transform: translateX(-100%);
+      }
+    }
+
+    body.nav-open #menuButton {
+      background: #3167f2;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <button class="icon-btn" id="menuButton" title="菜单" aria-label="菜单">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+      </button>
+      <div class="brand" aria-label="QuickInsight">
+        <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M 22 26 A 14 14 0 0 1 42 26" fill="none" stroke="#246fe5" stroke-width="5.5" stroke-linecap="round"/>
+          <path d="M 32 36 C 20 22, 4 26, 10 42 C 14 54, 28 50, 32 36 C 36 22, 60 26, 54 42 C 50 54, 36 50, 32 36 Z" fill="none" stroke="#246fe5" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="19" cy="38" r="4" fill="#246fe5"/>
+          <circle cx="45" cy="38" r="4" fill="#246fe5"/>
+        </svg>
+        <span>QuickInsight</span>
+      </div>
+      <div class="top-spacer"></div>
+      <nav class="top-links" aria-label="顶部导航">
+        <span>权限中心</span>
+        <span>帮助中心</span>
+        <span>简体中文</span>
+      </nav>
+      <div class="account">
+        <span class="avatar">庞</span>
+        <span class="account-name">庞海津(sl_j...)</span>
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+      </div>
+    </header>
+
+    <nav class="platform-menu" id="platformMenu" aria-label="聚数平台侧边栏">
+      <div class="platform-menu-grid">
+        <div class="platform-column">
+          <section class="platform-group report">
+            <h2 class="platform-group-title"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v14H5zM8 8h8M8 12h6" /></svg>数据上报</h2>
+            <div class="platform-menu-list">
+              <button class="platform-link" type="button">埋点</button>
+            </div>
+          </section>
+          <section class="platform-group integration">
+            <h2 class="platform-group-title"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m4 7 8-4 8 4-8 4-8-4ZM4 12l8 4 8-4M4 17l8 4 8-4" /></svg>数据集成</h2>
+            <div class="platform-menu-list">
+              <button class="platform-link" type="button">数据采集</button>
+              <button class="platform-link" type="button">一键集成</button>
+            </div>
+          </section>
+          <section class="platform-group development">
+            <h2 class="platform-group-title"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6" /></svg>数据开发</h2>
+            <div class="platform-menu-list">
+              <button class="platform-link" type="button">离线开发</button>
+              <button class="platform-link" type="button">实时开发</button>
+              <button class="platform-link" type="button">api服务开发</button>
+            </div>
+          </section>
+          <section class="platform-group ops">
+            <h2 class="platform-group-title"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12 20 4l-4 16-4-7-8-1Z" /></svg>发布运维</h2>
+            <div class="platform-menu-list">
+              <button class="platform-link" type="button">发布中心</button>
+              <button class="platform-link" type="button">运维中心</button>
+            </div>
+          </section>
+        </div>
+        <div class="platform-column">
+          <section class="platform-group governance">
+            <h2 class="platform-group-title"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M4 8l8-5 8 5M4 16l8 5 8-5" /></svg>数据治理</h2>
+            <div class="platform-menu-list">
+              <button class="platform-link" type="button">数据地图</button>
+              <button class="platform-link" type="button">建模&指标管理</button>
+              <button class="platform-link" type="button">元数据管理</button>
+              <button class="platform-link" type="button">数据血缘</button>
+            </div>
+          </section>
+          <section class="platform-group application">
+            <h2 class="platform-group-title"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h7v7H4zM13 5h7v7h-7zM4 14h7v5H4zM13 14h7v5h-7z" /></svg>数据应用</h2>
+            <div class="platform-menu-list">
+              <button class="platform-link" type="button">BI数据分析(FineBI)</button>
+              <button class="platform-link" type="button">SHOPLINE BI</button>
+              <button class="platform-link" type="button">自助查询</button>
+              <button class="platform-link" type="button">标签系统</button>
+              <button class="platform-link" type="button">数据专题洞察</button>
+              <button class="platform-link" type="button">SHOPLINE驾驶舱</button>
+              <button class="platform-link active" id="quickInsightEntry" type="button">QuickInsight</button>
+            </div>
+          </section>
+        </div>
+      </div>
+      <div class="platform-menu-footer">
+        <button class="platform-footer-button" type="button"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>返回首页</button>
+        <button class="platform-footer-button" type="button"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21a8 8 0 1 0-16 0M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" /></svg>我的业务空间</button>
+      </div>
+    </nav>
+
+    <main class="main">
+      <aside class="sidebar">
+        <button class="new-chat" id="newChat">
+          <span>新建业务对话</span>
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+        </button>
+        <div class="section-label">历史对话</div>
+        <div class="history" id="historyList"></div>
+      </aside>
+
+      <section class="workspace" aria-label="DataAgent 工作区">
+        <div class="context-bar" id="contextBar"></div>
+        <div class="stage drawer-closed" id="stage">
+          <section class="chat-column">
+            <div class="chat-scroll" id="chatScroll"></div>
+            <div class="composer-wrap">
+              <div class="quick-chips" id="quickChips"></div>
+              <form class="composer" id="composer">
+                <label class="sr-only" for="questionInput">输入数据分析问题</label>
+                <div class="composer-field">
+                  <textarea id="questionInput" placeholder="输入数据分析问题，支持多轮追问。"></textarea>
+                </div>
+                <button class="send" type="submit">发送问题</button>
+              </form>
+            </div>
+          </section>
+
+          <aside class="dictionary" id="dictionaryDrawer" aria-label="主题字典">
+            <div class="drawer-head">
+              <span id="drawerTitle">主题字典</span>
+              <button class="icon-btn" id="closeDrawer" title="关闭主题字典" aria-label="关闭主题字典">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div class="drawer-search" id="drawerSearch">
+              <label class="sr-only" for="dictSearch">搜索字段</label>
+              <div class="search-field">
+                <input id="dictSearch" type="text" placeholder="请输入字段名关键字进行搜索" />
+                <button class="dict-clear" id="clearDictSearch" type="button" title="清空搜索" aria-label="清空搜索" hidden>
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                </button>
+              </div>
+            </div>
+            <div class="dict-table-wrap" id="dictTableWrap"></div>
+          </aside>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <div class="chart-tooltip" id="chartTooltip" role="tooltip" aria-hidden="true"></div>
+
+  <script>
+    const topics = {
+      visitor: {
+        key: "visitor",
+        name: "访客转化分析主题",
+        path: "EC2.0/行为域",
+        dimension: "年份",
+        metric: "访客转化率",
+        dateRange: "2025-08-21 至 2025-08-27",
+        subjectDate: "2025-08-27",
+        compare: "日环比",
+        suggestions: [
+          "分析最近7天访客转化率趋势",
+          "分析最近7天各来源渠道访客转化率趋势"
+        ],
+        dict: [
+          {
+            field: "近7天各渠道GMV",
+            details: [
+              ["重要性", "T1"],
+              ["业务过程", "支付"],
+              ["原子指标", "gmv"],
+              ["业务限定", "订单状态为已支付，排除测试店铺；时间归属按支付成功时间 pay_time；归属到自然日 dt"],
+              ["统计粒度", "天 / 店铺 / 国家"]
+            ]
+          },
+          {
+            field: "生命周期阶段",
+            details: [
+              ["重要性", "T1"],
+              ["业务定义", "根据商家近90天 GMV 与活跃天数划分运营阶段，用于分群与策略触达获取逻辑"],
+              ["标签任务", "tag_merchant_lifecycle"],
+              ["输入", "dws_trade_merchant_90d"],
+              ["描述对象", "店铺"]
+            ]
+          },
+          {
+            field: "访客转化率",
+            details: [
+              ["计算口径", "支付买家数 / 访问用户数"],
+              ["业务限定", "剔除内部测试流量；按自然日聚合；支持按来源渠道、国家、店铺类型拆分"]
+            ]
+          },
+          {
+            field: "店日均杯量",
+            details: [
+              ["计算口径", "统计周期内杯量 / 活跃店铺天数"],
+              ["默认范围", "近7日"],
+              ["默认对比", "日环比"],
+              ["适用场景", "运营健康度、趋势波动判断"]
+            ]
+          }
+        ]
+      },
+      payment: {
+        key: "payment",
+        name: "SHOPLINE Payment正向支付主题",
+        path: "EC2.0/支付域",
+        dimension: "支付渠道",
+        metric: "支付成功GMV",
+        dateRange: "2025-08-21 至 2025-08-27",
+        subjectDate: "2025-08-27",
+        compare: "周环比",
+        suggestions: [
+          "分析近7天正向支付GMV趋势",
+          "按支付渠道对比近7天支付成功率"
+        ],
+        dict: [
+          {
+            field: "支付成功GMV",
+            details: [
+              ["业务过程", "正向支付"],
+              ["统计口径", "订单支付成功且未被测试标记；金额按交易币种换算为标准币种；按 pay_time 归属自然日"]
+            ]
+          },
+          {
+            field: "支付成功率",
+            details: [
+              ["计算口径", "支付成功笔数 / 支付发起笔数"],
+              ["业务限定", "剔除风控模拟、内部测试、重复回调；支持按渠道、国家、支付方式拆分"]
+            ]
+          },
+          {
+            field: "支付渠道",
+            details: [
+              ["字段来源", "payment_channel"],
+              ["描述对象", "支付交易"],
+              ["枚举示例", "Card、Wallet、Bank Transfer、Alternative Payment"]
+            ]
+          }
+        ]
+      }
+    };
+
+    const demoQuestions = [
+      "分析店铺最近售卖情况",
+      "广州最近天气怎么样，分析店铺售卖情况",
+      "分析最近7天正向支付GMV趋势",
+      "最近拒付率怎么样",
+      "广州最近天气怎么样",
+      "今天会下雨吗",
+      "分析最近7天各来源渠道访客转化率趋势",
+      "查询火星门店GMV",
+      "访客转化率和投放ROI一起看",
+      "同时分析访客、支付、退款、库存、客诉、ROI"
+    ];
+
+    const createNewSessionId = () => 'sess_' + Date.now() + Math.random().toString(36).substr(2, 5);
+
+    const state = {
+      currentSessionId: createNewSessionId(),
+      sessions: [
+        { id: 'mock_1', title: '华东区一季度销售额查询', topicKey: 'payment', messages: [] },
+        { id: 'mock_2', title: '周度运营指标深度拆解', topicKey: 'visitor', messages: [] },
+        { id: 'mock_3', title: '全量跨年复购漏斗计算', topicKey: 'payment', messages: [] }
+      ],
+      topic: null,
+      messages: [],
+      drawerOpen: false,
+      drawerMode: "dictionary",
+      dictQuery: "",
+      activeView: "chart",
+      paramsOpen: false,
+      activeProcessId: null,
+      messageSeq: 1,
+      multiExpanded: {},
+      topicTree: {
+        behavior: false,
+        payment: false
+      },
+      loading: false,
+      openDropdownId: null, 
+      renamingId: null,
+      dropdownPos: { top: '0px', left: '0px' },
+      keepScrollPosition: false
+    };
+
+    const els = {
+      contextBar: document.getElementById("contextBar"),
+      stage: document.getElementById("stage"),
+      chatScroll: document.getElementById("chatScroll"),
+      historyList: document.getElementById("historyList"),
+      composerWrap: document.querySelector(".composer-wrap"),
+      quickChips: document.getElementById("quickChips"),
+      composer: document.getElementById("composer"),
+      input: document.getElementById("questionInput"),
+      dictionaryDrawer: document.getElementById("dictionaryDrawer"),
+      drawerTitle: document.getElementById("drawerTitle"),
+      drawerSearch: document.getElementById("drawerSearch"),
+      dictTableWrap: document.getElementById("dictTableWrap"),
+      dictSearch: document.getElementById("dictSearch"),
+      clearDictSearch: document.getElementById("clearDictSearch"),
+      toast: document.getElementById("toast")
+    };
+
+    function icon(name) {
+      const paths = {
+        table: '<path d="M3 5h18v14H3z"/><path d="M3 10h18M9 5v14"/>',
+        chart: '<path d="M4 19h16"/><path d="m6 15 4-4 3 3 5-7"/>',
+        sql: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h5M8 17h8"/>',
+        alert: '<path d="M12 9v4"/><path d="M12 17h.01"/><path d="m10.3 3.9-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.1l-8-14a2 2 0 0 0-3.4 0Z"/>',
+        shield: '<path d="M12 3 5 6v6c0 4.6 2.9 7.6 7 9 4.1-1.4 7-4.4 7-9V6l-7-3Z"/><path d="m9 12 2 2 4-4"/>',
+        info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+        check: '<path d="m20 6-11 11-5-5"/>',
+        copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/>',
+        thumbsUp: '<path d="M7 10v11"/><path d="M15 5.9 14 10h5.8a2 2 0 0 1 2 2.3l-1.4 7a2 2 0 0 1-2 1.7H7"/><path d="M7 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/><path d="M14 10V5.9A2.9 2.9 0 0 0 11.1 3L7 10"/>',
+        thumbsDown: '<path d="M17 14V3"/><path d="m9 18.1 1-4.1H4.2a2 2 0 0 1-2-2.3l1.4-7a2 2 0 0 1 2-1.7H17"/><path d="M17 14h3a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-3"/><path d="M10 14v4.1A2.9 2.9 0 0 0 12.9 21L17 14"/>',
+        chevronRight: '<path d="m9 18 6-6-6-6"/>',
+        chevronDown: '<path d="m6 9 6 6 6-6"/>',
+        chevronUp: '<path d="m18 15-6-6-6 6"/>'
+      };
+      return `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none">${paths[name] || paths.info}</svg>`;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function render() {
+      renderHistory();
+      renderContext();
+      renderComposerState();
+      renderChips();
+      renderDrawer();
+      renderMessages();
+      els.stage.classList.toggle("drawer-closed", !state.drawerOpen);
+    }
+
+    function renderHistory() {
+      els.historyList.innerHTML = state.sessions.map((session) => `
+        <div class="history-item-wrap">
+          <button class="history-item ${session.id === state.currentSessionId ? "active" : ""}" data-session-id="${session.id}" title="${escapeHtml(session.title)}">
+            <span class="history-icon">Q</span>
+            ${state.renamingId === session.id ? 
+              `<input class="history-rename-input" data-rename-id="${session.id}" value="${escapeHtml(session.title)}" />` : 
+              `<span class="history-text">${escapeHtml(session.title)}</span>`
+            }
+          </button>
+          
+          <button class="history-more-btn" data-more-id="${session.id}" title="更多操作">
+             <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1.5" fill="currentColor" stroke="none"/></svg>
+          </button>
+          
+          ${state.openDropdownId === session.id ? `
+            <div class="history-dropdown" style="top: ${state.dropdownPos.top}; left: ${state.dropdownPos.left};">
+              <div class="dropdown-item" data-action-id="${session.id}" data-action="share">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13" stroke="currentColor" fill="none"/></svg> 分享
+              </div>
+              <div class="dropdown-item" data-action-id="${session.id}" data-action="pin">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M16 4h-8l-1 5-2 1v2h5v8l1 2 1-2v-8h5v-2l-2-1z" stroke="currentColor" fill="none"/></svg> 置顶
+              </div>
+              <div class="dropdown-item" data-action-id="${session.id}" data-action="rename">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" fill="none"/></svg> 重命名
+              </div>
+              <div class="dropdown-item danger" data-action-id="${session.id}" data-action="delete">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" fill="none"/></svg> 删除
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `).join("");
+    }
+
+    function renderContext() {
+      if (!state.topic) {
+        els.contextBar.innerHTML = '<span class="context-empty">请选择需要分析的主题</span>';
+        return;
+      }
+
+      els.contextBar.innerHTML = `
+        <div class="topic-pill" title="${escapeHtml(state.topic.name)} ${escapeHtml(state.topic.path)}">
+          <span class="topic-dot"></span>
+          <span class="topic-name">${escapeHtml(state.topic.name)}</span>
+          <span class="topic-path">${escapeHtml(state.topic.path)}</span>
+        </div>
+        <button class="dictionary-open" id="openDrawer">主题字典</button>
+      `;
+    }
+
+    function renderChips() {
+      els.quickChips.innerHTML = demoQuestions.map(q => `
+        <button class="chip" type="button" data-question="${escapeHtml(q)}">${escapeHtml(q)}</button>
+      `).join("");
+    }
+
+    function renderComposerState() {
+      const isTopicSelected = Boolean(state.topic);
+      els.composerWrap.hidden = !isTopicSelected;
+      els.input.disabled = !isTopicSelected;
+    }
+
+    function renderDrawer() {
+      if (state.drawerMode === "process") {
+        renderProcessDrawer();
+        return;
+      }
+      renderDictionaryDrawer();
+    }
+
+    function renderDictionaryDrawer() {
+      els.drawerTitle.textContent = "主题字典";
+      els.dictionaryDrawer.setAttribute("aria-label", "主题字典");
+      els.drawerSearch.hidden = false;
+      const topic = state.topic || topics.visitor;
+      const query = state.dictQuery.trim().toLowerCase();
+      if (els.clearDictSearch) {
+        els.clearDictSearch.hidden = !query;
+      }
+      const rows = topic.dict.filter(item => {
+        const detailText = getDictionaryDetails(item).map(([label, value]) => `${label} ${value}`).join(" ");
+        const text = `${item.field} ${detailText}`.toLowerCase();
+        return !query || text.includes(query);
+      });
+
+      els.dictTableWrap.innerHTML = rows.length ? `
+        <table class="dict-table">
+          <thead>
+            <tr>
+              <th class="field-name">字段名</th>
+              <th>业务定义</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(row => `
+              <tr>
+                <td class="field-name ${query && row.field.toLowerCase().includes(query) ? "field-match" : ""}">${escapeHtml(row.field)}</td>
+                <td>${renderDefinitionList(row)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      ` : '<div class="empty-dict">未找到匹配字段</div>';
+    }
+
+    function renderDictionary() {
+      renderDictionaryDrawer();
+    }
+
+    function getDictionaryDetails(row) {
+      if (Array.isArray(row.details)) return row.details;
+      return String(row.desc || "")
+        .split("\n")
+        .map(item => item.trim())
+        .filter(Boolean)
+        .map(item => {
+          const normalized = item.replace(/^中文名称：[^：\n]+$/, "");
+          const separator = normalized.indexOf("：");
+          if (separator === -1) return ["定义", normalized];
+          return [normalized.slice(0, separator), normalized.slice(separator + 1)];
+        })
+        .filter(([, value]) => value);
+    }
+
+    function renderDefinitionList(row) {
+      return `
+        <div class="definition-list">
+          ${getDictionaryDetails(row).map(([label, value]) => `
+            <p class="definition-item"><span class="definition-label">${escapeHtml(label)}：</span>${escapeHtml(value)}</p>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderProcessDrawer() {
+      els.drawerTitle.textContent = "分析过程";
+      els.dictionaryDrawer.setAttribute("aria-label", "分析过程");
+      els.drawerSearch.hidden = true;
+      const message = getProcessMessage();
+      if (!message) {
+        els.dictTableWrap.innerHTML = '<div class="empty-dict">暂无可展示的分析过程</div>';
+        return;
+      }
+      const result = message.result;
+      const steps = getProcessSteps(result);
+      els.dictTableWrap.innerHTML = `
+        <div class="drawer-copy">
+          <h3>${escapeHtml(result.title)}</h3>
+          <p>系统按当前主题边界完成意图识别、参数推导、查询生成与结果校验。</p>
+        </div>
+        <div class="analysis-process-list">
+          ${steps.map((step, index) => `
+            <div class="process-step">
+              <span class="step-index">${index + 1}</span>
+              <span>${escapeHtml(step)}</span>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function getProcessMessage() {
+      if (state.activeProcessId) {
+        const active = state.messages.find(item => item.id === state.activeProcessId);
+        if (active) return active;
+      }
+      for (let index = state.messages.length - 1; index >= 0; index -= 1) {
+        const message = state.messages[index];
+        if (message.kind === "answer" && canShowProcess(message.result)) return message;
+      }
+      return null;
+    }
+
+    function renderMessages() {
+      if (!state.topic) {
+        els.chatScroll.innerHTML = renderTopicChooser();
+        return;
+      }
+
+      const keepScrollPosition = Boolean(state.keepScrollPosition);
+      const previousScrollTop = els.chatScroll.scrollTop;
+      const html = `
+        <div class="message-stack">
+          ${state.messages.map(renderMessage).join("")}
+          ${state.loading ? renderLoading() : ""}
+        </div>
+      `;
+      els.chatScroll.innerHTML = html;
+      queueMicrotask(() => {
+        resizeCommentTextareas();
+        if (keepScrollPosition) {
+          els.chatScroll.scrollTop = previousScrollTop;
+          state.keepScrollPosition = false;
+          return;
+        }
+        els.chatScroll.scrollTop = els.chatScroll.scrollHeight;
+      });
+    }
+
+    function resizeCommentTextareas(root = document) {
+      root.querySelectorAll("[data-comment-input]").forEach(textarea => {
+        textarea.style.height = "auto";
+        textarea.style.height = `${textarea.scrollHeight}px`;
+      });
+    }
+
+    function renderTopicChooser() {
+      const behaviorOpen = state.topicTree.behavior;
+      const paymentOpen = state.topicTree.payment;
+      return `
+        <section class="topic-chooser">
+          <h1 class="topic-title">Zheng Ye，欢迎使用QuickInsight！</h1>
+          <p class="topic-subtitle">请您选择需要分析的主题</p>
+          <div class="tree" aria-label="分析主题目录树">
+            <div class="tree-row root-label"><span>EC2.0</span></div>
+            <div class="tree-row level-1">
+              <button class="domain-toggle" type="button" data-domain-toggle="behavior" aria-expanded="${behaviorOpen}">
+                <span class="carets">${behaviorOpen ? "▼" : "▶"}</span>
+                <span>行为域</span>
+              </button>
+            </div>
+            ${behaviorOpen ? `
+              <div class="tree-row level-2">
+                <button class="topic-link" type="button" data-topic="visitor">访客转化分析主题</button>
+              </div>
+            ` : ""}
+            <div class="tree-row level-1">
+              <button class="domain-toggle" type="button" data-domain-toggle="payment" aria-expanded="${paymentOpen}">
+                <span class="carets">${paymentOpen ? "▼" : "▶"}</span>
+                <span>支付域</span>
+              </button>
+            </div>
+            ${paymentOpen ? `
+              <div class="tree-row level-2">
+                <button class="topic-link" type="button" data-topic="payment">SHOPLINE Payment正向支付主题</button>
+              </div>
+            ` : ""}
+          </div>
+        </section>
+      `;
+    }
+
+    function renderMessage(message) {
+      if (message.role === "user") {
+        return `
+          <div class="message-row user">
+            <div class="user-bubble">${escapeHtml(message.content)}</div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="message-row">
+          <div class="agent-badge">AI</div>
+          ${message.kind === "warm" ? renderWarmCard() : renderAnswer(message)}
+        </div>
+      `;
+    }
+
+    function renderWarmCard() {
+      const topic = state.topic;
+      return `
+        <article class="bubble warm-card">
+          <h2>已成功加载「${escapeHtml(topic.name)}」</h2>
+          <p>推荐您直接点击以下针对该主题定制的敏捷提问模板</p>
+          <div class="suggestion-list">
+            ${topic.suggestions.map(item => `
+              <button class="suggestion" type="button" data-question="${escapeHtml(item)}">${escapeHtml(item)}</button>
+            `).join("")}
+          </div>
+        </article>
+      `;
+    }
+
+    function renderLoading() {
+      return `
+        <div class="message-row">
+          <div class="agent-badge">AI</div>
+          <div class="bubble loading-card">
+            <span class="spinner"></span>
+            <span>分析中，正在限定知识边界、推导默认口径并生成查询...</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAnswer(message) {
+      const result = message.result;
+      
+      if (result.type === "multi") {
+        return `
+          <article class="bubble answer">
+            <div class="answer-head">
+              <div class="answer-state">
+                <span>${escapeHtml(result.status)}</span>
+                <span class="duration">（用时${result.duration}秒）</span>
+              </div>
+              <button class="link-button" data-action="open-process" data-process-id="${message.id}">
+                展开分析过程
+                ${icon("chevronRight")}
+              </button>
+            </div>
+            <div class="answer-body">
+              ${renderResultBody(result)}
+            </div>
+            ${renderFeedback(message)}
+          </article>
+        `;
+      }
+
+      if (result.type === "unrelated" || result.type === "out_scope" || result.type === "topic_mismatch") {
+        return `
+          <article class="bubble answer" style="padding: 18px 20px;">
+            ${renderResultBody(result)}
+          </article>
+        `;
+      }
+
+      if (result.type === "no_data" || result.type === "system_error") {
+        return `
+          <article class="bubble answer" style="padding: 22px 24px;">
+            ${renderResultBody(result)}
+          </article>
+        `;
+      }
+
+      return `
+        <article class="bubble answer">
+          <div class="answer-head">
+            <div class="answer-state">
+              <span>${escapeHtml(result.status)}</span>
+              <span class="duration">（用时${result.duration}秒）</span>
+            </div>
+            ${canShowProcess(result) ? `
+              <button class="link-button" data-action="open-process" data-process-id="${message.id}">
+                展开分析过程
+                ${icon("chevronRight")}
+              </button>
+            ` : ""}
+          </div>
+          <div class="answer-body">
+            ${renderResultBody(result)}
+          </div>
+          ${renderFeedback(message)}
+        </article>
+      `;
+    }
+
+    function renderFeedback(message) {
+      const feedback = message.feedback || "";
+      const commentValue = message.commentDraft ?? message.comment ?? "";
+      const hasSaved = message.savedComments && message.savedComments.length > 0;
+      
+      let commentHtml = "";
+      if (feedback) {
+        if (hasSaved) {
+          commentHtml = `
+            <div class="saved-comments-wrap">
+              <div class="saved-list">
+                ${message.savedComments.map(c => `
+                  <div class="saved-item">${escapeHtml(c.text)} <span class="time">(保存时间: ${c.time})</span></div>
+                `).join("")}
+              </div>
+            </div>
+          `;
+        } else {
+          const canSave = commentValue.trim().length > 0;
+          commentHtml = `
+            <div class="feedback-comment">
+              <div class="comment-input-wrap">
+                <textarea data-comment-input="${message.id}" placeholder="请输入评论，帮助我们优化本次分析结果。">${escapeHtml(commentValue)}</textarea>
+                <button class="comment-save" type="button" data-comment-save="${message.id}" ${canSave ? "" : "disabled"}>保存评论</button>
+              </div>
+              <div class="comment-actions">
+                <span class="feedback-hint">点击保存后记录本次反馈评论</span>
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      return `
+        <div class="answer-feedback" aria-label="结果反馈">
+          <div class="feedback-row">
+            <button class="feedback-button ${feedback === "like" ? "active" : ""}" data-feedback-id="${message.id}" data-feedback="like" title="赞" aria-label="赞">
+              ${icon("thumbsUp")}
+            </button>
+            <button class="feedback-button ${feedback === "dislike" ? "active" : ""}" data-feedback-id="${message.id}" data-feedback="dislike" title="踩" aria-label="踩">
+              ${icon("thumbsDown")}
+            </button>
+            <span class="feedback-hint">${feedback === "like" ? "已赞，可补充评论" : feedback === "dislike" ? "已踩，可补充评论" : "可对本次结果进行评价"}</span>
+          </div>
+          ${commentHtml}
+        </div>
+      `;
+    }
+
+    function canShowProcess(result) {
+      return ["normal", "partial", "multi", "store_sales", "mixed_store_sales"].includes(result.type);
+    }
+
+    function getProcessSteps(result) {
+      const topic = state.topic;
+      const metric = result && result.metric ? result.metric : topic.metric;
+      return [
+        `识别问题意图，冻结分析主题为「${topic.name}」。`,
+        `问题未完整指定时间范围时，默认圈定近7日：${topic.dateRange}。`,
+        `从主题字典中匹配维度「${topic.dimension}」、指标「${metric}」并生成查询口径。`,
+        "完成 SQL 查询、结果校验与业务化结论生成。"
+      ];
+    }
+
+    function renderResultBody(result) {
+      if (result.type === "clarify") return renderClarify(result);
+      if (result.type === "unrelated") return renderUnrelated(result);
+      if (result.type === "out_scope") return renderOutScope(result);
+      if (result.type === "topic_mismatch") return renderTopicMismatch(result);
+      if (result.type === "no_data") return renderNoData(result);
+      if (result.type === "multi") return renderMulti(result);
+      if (result.type === "system_error") return renderSystemError(result);
+      if (result.type === "partial") return renderPartial(result);
+      if (result.type === "store_sales" || result.type === "mixed_store_sales") return renderNormal(result);
+      return renderNormal(result);
+    }
+
+    function renderAiNotice(title, content) {
+      const isDetail = content && typeof content === "object" && !Array.isArray(content);
+      const isList = Array.isArray(content);
+      const lines = isDetail ? content.lines : (isList ? content : [content]);
+      return `
+        <div class="ai-inference-hint">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" style="stroke: #b47a05;"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+          <div>
+            ${isDetail ? `
+              <strong>${escapeHtml(title)}：</strong>${escapeHtml(content.summary)}
+              <div class="ai-notice-lines with-summary">
+                ${lines.map(line => `<p>${escapeHtml(line)}</p>`).join("")}
+              </div>
+            ` : isList ? `
+              <strong class="ai-notice-title">${escapeHtml(title)}：</strong>
+              <div class="ai-notice-lines">
+                ${lines.map(line => `<p>${escapeHtml(line)}</p>`).join("")}
+              </div>
+            ` : `<strong>${escapeHtml(title)}：</strong>${escapeHtml(lines[0])}`}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderResultNotices(result, topic, displayMetric) {
+      if (result.type === "mixed_store_sales") {
+        return renderAiNotice("问题部分支持", [
+          "1. 已为您自动拆解问题并提供2个分析内容「近7日店日均杯量」、「近7日各SKU店日均杯量」。已根据你的问题提供‘近7日店日均杯量’进行分析。",
+          "2. 由于「广州天气怎么样」不属于数据分析问题，已为您自动忽略。"
+        ]);
+      }
+
+      if (result.type === "partial") {
+        return renderAiNotice("问题部分支持", [
+          "1. 已经支持访客转化率趋势；暂不支持投放ROI，因为当前主题未挂载广告投放成本数据。",
+          `2. 您未指定明确的时间范围与指标。基于「${topic.name}」，AI 已为您默认查询近7日的${displayMetric}。`
+        ]);
+      }
+
+      return `
+        ${result.partialWarning ? renderAiNotice("问题部分支持", [result.partialWarning]) : ""}
+        ${result.inferredText ? renderAiNotice("AI 智能补齐", result.inferredText) : ""}
+      `;
+    }
+
+    function renderNormal(result, options = {}) {
+      const topic = state.topic;
+      const displayMetric = result.metric || topic.metric;
+      const unitStr = result.unit || (displayMetric.includes("率") ? "%" : displayMetric.includes("GMV") ? "" : "人");
+      return `
+        ${renderResultNotices(result, topic, displayMetric)}
+        <h2 class="answer-title">${escapeHtml(result.title)}</h2>
+        
+        ${renderParams(topic, result)}
+        <div class="insight-box">
+          <div class="insight-label">解答口径</div>
+          <div>${escapeHtml(result.scopeText || `本次将“昨日”按主日期 ${topic.subjectDate} 处理，近7日覆盖 ${topic.dateRange}，指标为${displayMetric}。`)}</div>
+        </div>
+        <div class="viz-head">
+          <div class="metric-name"><span class="tiny-line"></span>${escapeHtml(displayMetric)}</div>
+          ${options.hideTabs ? "" : renderViewTabs()}
+        </div>
+        ${renderActiveView(result, displayMetric, unitStr)}
+      `;
+    }
+
+    function renderParams(topic, result = {}) {
+      const extraFilters = result.extraFilters || [];
+      const displayMetric = result.metric || topic.metric;
+      return `
+        <section class="analysis-block">
+          <button class="analysis-summary" data-action="toggle-params" type="button">
+            <span class="analysis-title"><span class="blue-dot"></span>分析参数</span>
+            <span class="analysis-toggle-label">
+              <span class="toggle-text"></span>
+              <span class="icon-expand">${icon("chevronDown")}</span>
+              <span class="icon-collapse">${icon("chevronUp")}</span>
+            </span>
+          </button>
+          <div class="param-grid-wrap">
+            <div class="param-grid">
+              <div class="param-label">维度</div>
+              <div class="tag-row"><span class="tag blue">${escapeHtml(topic.dimension)}</span></div>
+              <div class="param-label">指标</div>
+              <div class="tag-row"><span class="tag">${escapeHtml(displayMetric)}</span></div>
+              <div class="param-label">筛选</div>
+              <div class="tag-row">
+                <span class="tag">日期：${escapeHtml(topic.dateRange)}</span>
+                <span class="tag">主日期：${escapeHtml(topic.subjectDate)}</span>
+                <span class="tag gray">对比口径：${escapeHtml(topic.compare)}</span>
+                ${extraFilters.map(item => `<span class="tag blue">${escapeHtml(item)}</span>`).join("")}
+              </div>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderViewTabs() {
+      const tabs = [
+        ["table", "表格"],
+        ["chart", "图表"],
+        ["sql", "SQL"]
+      ];
+      return `
+        <div class="view-tabs" role="tablist" aria-label="结果视图">
+          ${tabs.map(([key, label]) => `
+            <button class="view-tab ${state.activeView === key ? "active" : ""}" data-view="${key}" title="${label}" aria-label="${label}">
+              ${icon(key)}
+            </button>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderActiveView(result, displayMetric, unitStr) {
+      if (state.activeView === "table") return renderTable(result, displayMetric);
+      if (state.activeView === "sql") return renderSql(result, displayMetric);
+      if (result.chart === "bars") return renderBars(result, displayMetric);
+      return renderLineChart(result, displayMetric, unitStr);
+    }
+
+    function getSmoothPath(points) {
+      if (!points.length) return "";
+      if (points.length === 1) return `M${points[0][0]} ${points[0][1]}`;
+
+      const tension = 0.18;
+      return points.reduce((path, point, index) => {
+        if (index === 0) return `M${point[0]} ${point[1]}`;
+
+        const prev = points[index - 1];
+        const prevPrev = points[index - 2] || prev;
+        const next = points[index + 1] || point;
+        const cp1x = prev[0] + (point[0] - prevPrev[0]) * tension;
+        const cp1y = prev[1] + (point[1] - prevPrev[1]) * tension;
+        const cp2x = point[0] - (next[0] - prev[0]) * tension;
+        const cp2y = point[1] - (next[1] - prev[1]) * tension;
+        return `${path} C${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${point[0]} ${point[1]}`;
+      }, "");
+    }
+
+    function renderLineChart(result, displayMetric, unitStr) {
+      const values = result.values || [2780, 4740, 2680, 1180, 5820, 4050, 5520];
+      const labels = result.labels || ["2025-08-21", "2025-08-22", "2025-08-23", "2025-08-24", "2025-08-25", "2025-08-26", "2025-08-27"];
+      const formatPointValue = value => Number(value).toLocaleString("en-US", {
+        minimumFractionDigits: Number.isInteger(Number(value)) ? 0 : 2,
+        maximumFractionDigits: 2
+      });
+      const max = result.max || 8000;
+      const min = 0;
+      const chartLeft = 60;
+      const chartRight = 936;
+      const chartTop = 50;
+      const chartBottom = 220;
+      const chartHeight = chartBottom - chartTop;
+      const step = labels.length > 1 ? (chartRight - chartLeft) / (labels.length - 1) : 0;
+      const points = values.map((value, index) => {
+        const x = chartLeft + index * step; 
+        const y = chartBottom - ((value - min) / (max - min)) * chartHeight;
+        return [x, y];
+      });
+      const curve = getSmoothPath(points);
+      const area = `${curve} L${chartRight} ${chartBottom} L${chartLeft} ${chartBottom} Z`;
+      const ticks = [max, max * 0.75, max * 0.5, max * 0.25, 0];
+      const tickYs = [50, 92, 135, 177, 220];
+
+      const circlesHtml = points.map(([x, y], index) => {
+        const valStr = formatPointValue(values[index]);
+        return `<circle cx="${x}" cy="${y}" r="5" fill="#fff" stroke="#3e8cf0" stroke-width="4" 
+            class="chart-point" 
+            data-date="${escapeHtml(labels[index])}" 
+            data-value="${escapeHtml(valStr)}" 
+            data-metric="${escapeHtml(displayMetric)}" 
+            data-unit="${escapeHtml(unitStr)}" 
+        />`;
+      }).join("");
+
+      return `
+        <div class="metric-row">
+          <span class="metric-value">${escapeHtml(result.displayValue || "5,276.33")}<span class="unit"> ${escapeHtml(unitStr)}</span></span>
+          <span class="up">${escapeHtml(result.compareText || "日环比 +21.40%")}</span>
+        </div>
+        <div class="chart-wrap" aria-label="近7日趋势图">
+          <svg class="chart-svg" viewBox="0 0 1000 280" role="img" aria-label="近7日趋势折线图">
+            <defs>
+              <linearGradient id="areaBlue" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="#6ba8f7" stop-opacity="0.38" />
+                <stop offset="100%" stop-color="#6ba8f7" stop-opacity="0.02" />
+              </linearGradient>
+            </defs>
+            <g stroke="#e8edf5" stroke-width="1">
+              <path d="M40 50H960" /><path d="M40 92H960" /><path d="M40 135H960" /><path d="M40 177H960" /><path d="M40 220H960" />
+            </g>
+            <g fill="#8c96a8" font-size="12" font-weight="700" text-anchor="middle">
+              ${ticks.map((tick, index) => `<text x="34" y="${tickYs[index] + 4}" text-anchor="end">${escapeHtml(formatPointValue(tick))}</text>`).join("")}
+              ${labels.map((label, index) => `<text x="${chartLeft + index * step}" y="256">${escapeHtml(label)}</text>`).join("")}
+            </g>
+            <path d="${area}" fill="url(#areaBlue)" />
+            <path d="${curve}" fill="none" stroke="#3e8cf0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+            ${circlesHtml}
+          </svg>
+        </div>
+      `;
+    }
+
+    function renderBars(result, displayMetric) {
+      const rows = result.bars || [
+        ["自然搜索", 34.8],
+        ["付费广告", 26.1],
+        ["社媒跳转", 19.6],
+        ["直接访问", 12.4],
+        ["联盟渠道", 7.1]
+      ];
+      const values = rows.map(([, value]) => value);
+      const maxValue = Math.max(...values);
+      const displayValue = Number(maxValue).toLocaleString("en-US", {
+        minimumFractionDigits: Number.isInteger(maxValue) ? 0 : 1,
+        maximumFractionDigits: 1
+      });
+      const metricName = result.metric || "渠道转化率";
+      const unit = result.unit || "%";
+      const compareText = result.compareText || `最高渠道：${rows[0][0]}`;
+      const formatBarValue = value => Number(value).toLocaleString("en-US", {
+        minimumFractionDigits: Number.isInteger(Number(value)) ? 0 : 1,
+        maximumFractionDigits: 1
+      });
+
+      return `
+        <div class="metric-row">
+          <span class="metric-value">${escapeHtml(result.displayValue || displayValue)}<span class="unit">${escapeHtml(unit)}</span></span>
+          <span class="up">${escapeHtml(compareText)}</span>
+        </div>
+        <div class="small-bar-chart" aria-label="${escapeHtml(metricName)}渠道对比图">
+          ${rows.map(([name, value]) => {
+            const width = Math.max(0, Math.min(Number(value), 100));
+            return `
+              <div class="bar-row">
+                <span>${escapeHtml(name)}</span>
+                <span class="bar-track" aria-hidden="true">
+                  <span class="bar-fill" style="width:${width}%"></span>
+                </span>
+                <strong class="bar-value">${escapeHtml(formatBarValue(value))}${escapeHtml(unit)}</strong>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    function renderTable(result, displayMetric) {
+      const rows = result.rows || [
+        ["2025-08-21", "2,780.12", "-", "近7日起点"],
+        ["2025-08-22", "4,740.08", "+70.50%", "渠道活动拉升"],
+        ["2025-08-23", "2,680.47", "-43.45%", "周末波动"],
+        ["2025-08-24", "1,180.35", "-55.96%", "低谷日"],
+        ["2025-08-25", "6,890.20", "+483.75%", "活动恢复"],
+        ["2025-08-26", "4,050.38", "-41.21%", "回落"],
+        ["2025-08-27", "5,276.33", "+21.40%", "主日期"]
+      ];
+      return `
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>日期</th>
+              <th>${escapeHtml(displayMetric)}</th>
+              <th>日环比</th>
+              <th>数据说明</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(row => `
+              <tr>
+                <td>${escapeHtml(row[0])}</td>
+                <td class="number">${escapeHtml(row[1])}</td>
+                <td class="number">${escapeHtml(row[2])}</td>
+                <td>${escapeHtml(row[3])}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function renderSql(result = {}, displayMetric) {
+      const topic = state.topic;
+      const displayMetricSafe = result.metric || topic.metric;
+      const table = topic.key === "payment" ? "dws_payment_success_1d" : "dws_visitor_conversion_1d";
+      return `
+        <pre class="sql-block"><code>SELECT
+  dt,
+  SUM(metric_value) / NULLIF(COUNT(DISTINCT shop_id), 0) AS metric_value
+FROM ${table}
+WHERE dt BETWEEN '2025-08-21' AND '2025-08-27'
+  AND is_test_shop = 0
+  AND metric_name = '${displayMetricSafe}'
+GROUP BY dt
+ORDER BY dt;</code></pre>
+      `;
+    }
+
+    function renderClarify(result) {
+      const topic = state.topic;
+      return `
+        <h2 class="answer-title">${escapeHtml(result.title)}</h2>
+        <div class="alert warning">
+          <span class="alert-icon">${icon("info")}</span>
+          <div>
+            <h3>需要补充一个最小条件</h3>
+            <p>当前问题缺少明确的指标或分析对象。您可以直接补充指标，例如改成「这个<em>"${escapeHtml(topic.metric)}"</em>趋势怎么样」或「各维度的<em>"${escapeHtml(topic.metric)}"</em>怎么样」。</p>
+          </div>
+        </div>
+        <div class="suggestion-list" style="margin-top:14px">
+          ${topic.suggestions.map(item => `<button class="suggestion" data-question="${escapeHtml(item)}">💡 <em>"${escapeHtml(item)}"</em></button>`).join("")}
+        </div>
+      `;
+    }
+
+    function renderUnrelated(result) {
+      const topic = state.topic;
+      return `
+        <div class="out-scope-header">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#d93026" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>
+          <span>业务范围外拦截提示</span>
+        </div>
+        <p class="out-scope-desc">抱歉，我是您的<strong>【企业内部业务数据助手】</strong>，我的能力专注于分析销售、运营、商品及流失率等公司业务数据，<strong>无法回答生活类、天气或通用泛知识问题</strong>。</p>
+        <div class="out-scope-suggestions">
+          <div class="suggest-title">您可以试着这样问我：</div>
+          ${topic.suggestions.map(item => `
+            <div class="suggest-item" data-question="${escapeHtml(item)}">💡 <em>"${escapeHtml(item)}"</em></div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderTopicMismatch(result) {
+      const topic = state.topic;
+      return `
+        <div class="out-scope-header">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#d93026" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>
+          <span>分析主题不符合</span>
+        </div>
+        <p class="out-scope-desc" style="margin-bottom: 20px;">您当前提问的问题与<strong>「${escapeHtml(topic.name)}」</strong>的知识边界不匹配。请切换至对应主题后重新提问，或在当前主题下尝试以下分析：</p>
+        <div class="out-scope-suggestions">
+          <div class="suggest-title">在当前主题下，您可以试着这样问我：</div>
+          ${topic.suggestions.map(item => `
+            <div class="suggest-item" data-question="${escapeHtml(item)}">💡 <em>"${escapeHtml(item)}"</em></div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderOutScope(result) {
+      const topic = state.topic;
+      return `
+        <div class="out-scope-header">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#d93026" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>
+          <span>当前主题暂不支持该问题</span>
+        </div>
+        <p class="out-scope-desc">问题涉及退款、库存、客诉等未挂载主题。本期仅支持「访客转化分析主题」以及「SHOPLINE Payment正向支付主题」。</p>
+        <div class="out-scope-suggestions">
+          <div class="suggest-title">在当前主题下，您可以试着这样问我：</div>
+          ${topic.suggestions.map(item => `
+            <div class="suggest-item" data-question="${escapeHtml(item)}">💡 <em>"${escapeHtml(item)}"</em></div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderNoData(result) {
+      return `
+        <h2 class="answer-title">无相关数据内容提示</h2>
+        <div class="ai-inference-hint">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" style="stroke: #b47a05;"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+          <div>
+            <strong>未查询到符合条件的数据：</strong>当前筛选条件没有返回记录。建议放宽门店、国家、渠道或时间范围后重新查询。
+          </div>
+        </div>
+        <div class="suggestion-list" style="margin-top:14px; border-top: none; padding-top: 0;">
+          <button class="suggestion" data-question="分析最近7天访客转化率趋势">查看近7天整体趋势</button>
+          <button class="suggestion" data-question="分析最近7天各来源渠道访客转化率趋势">改按来源渠道对比</button>
+        </div>
+      `;
+    }
+
+    function renderPartial(result) {
+      return renderNormal(result);
+    }
+
+    function renderMulti(result) {
+      const isPaymentTopic = state.topic.key === "payment";
+      const supported = [
+        ["visitor", "访客转化率"],
+        ["payment", "支付成功GMV"]
+      ];
+      const summaryLines = isPaymentTopic ? [
+        "1. 本次提问只支持支付成功GMV的内容处理，已按近7日趋势完成分析，昨日为 5,276.33，日环比 +21.40%。",
+        "2. 访客转化率需要在访客转化分析主题中继续查看。",
+        "3. 当前主题未挂载投放成本数据，因此投放ROI暂不支持。",
+        "4. 当前业务域未接入库存主题，因此库存暂不支持。",
+        "5. 当前业务域未接入客诉主题，因此客诉暂不支持。"
+      ] : [
+        "1. 本次提问只支持访客转化率的内容处理，已按近7日趋势完成分析，昨日为 5,276.33，日环比 +21.40%。",
+        "2. 支付成功GMV需要在 SHOPLINE Payment 正向支付主题中继续查看。",
+        "3. 当前主题未挂载投放成本数据，因此投放ROI暂不支持。",
+        "4. 当前业务域未接入库存主题，因此库存暂不支持。",
+        "5. 当前业务域未接入客诉主题，因此客诉暂不支持。"
+      ];
+      const renderMultiItem = key => {
+        if (key === "visitor" && !isPaymentTopic) {
+          return renderNormal({
+            type: "normal",
+            title: "分析最近7天访客转化率趋势",
+            status: "分析完毕",
+            duration: 15,
+            metric: "访客转化率",
+            unit: "%",
+            chart: "line",
+            displayValue: "5,276.33",
+            compareText: "日环比 +21.40%",
+            scopeText: `本次将“昨日”按主日期 ${topics.visitor.subjectDate} 处理，近7日覆盖 ${topics.visitor.dateRange}，指标为访客转化率。`
+          }, { hideTabs: false });
+        }
+
+        if (key === "payment" && isPaymentTopic) {
+          return renderNormal({
+            type: "normal",
+            title: "分析近7天正向支付GMV趋势",
+            status: "分析完毕",
+            duration: 15,
+            metric: "支付成功GMV",
+            unit: "",
+            chart: "line",
+            displayValue: "5,276.33",
+            compareText: "日环比 +21.40%",
+            scopeText: `本次将“昨日”按主日期 ${topics.payment.subjectDate} 处理，近7日覆盖 ${topics.payment.dateRange}，指标为支付成功GMV。`
+          }, { hideTabs: false });
+        }
+
+        return renderTopicMismatch({
+          title: key === "visitor" ? "访客转化率需要切换主题查看" : "支付成功GMV需要切换主题查看"
+        });
+      };
+      return `
+        ${renderAiNotice("多个内容平铺展示结果", {
+          summary: "本次最多同时询问5个问题。已保留前5个可识别内容，并标注支持范围。",
+          lines: summaryLines
+        })}
+        <h2 class="answer-title">${escapeHtml(result.title)}</h2>
+        <div class="result-list">
+          ${supported.map(([key, name], index) => `
+            <section class="mini-result">
+              <button class="mini-result-toggle" type="button" data-action="toggle-multi-result" data-multi-key="${key}">
+                <span>${index + 1}. ${escapeHtml(name)}</span>
+                <span class="mini-result-status">
+                  ${state.multiExpanded[key] ? icon("chevronUp") : icon("chevronDown")}
+                </span>
+              </button>
+              ${state.multiExpanded[key] ? `
+                <div class="mini-result-panel">
+                  ${renderMultiItem(key)}
+                </div>
+              ` : ""}
+            </section>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderSystemError(result) {
+      return `
+        <h3 style="margin: 0 0 12px; font-size: 16px; color: #172033;">数据被堵在路上了... 系统超时 (Query Timeout)</h3>
+        <p style="margin: 0; color: #555a65; font-size: 13.5px;">请联系企微产品研发「屈华平」或产品经理「庞钰烨」进行协作</p>
+      `;
+    }
+
+    function syncSession(sessionTitle) {
+      let session = state.sessions.find(s => s.id === state.currentSessionId);
+      if (!session) {
+          session = {
+              id: state.currentSessionId,
+              title: sessionTitle || (state.topic ? state.topic.name : '新建业务对话'),
+              topicKey: state.topic ? state.topic.key : null,
+              messages: [...state.messages]
+          };
+          state.sessions.unshift(session);
+      } else {
+          if (sessionTitle && session.title === (state.topic ? state.topic.name : '新建业务对话')) {
+              session.title = sessionTitle;
+          }
+          session.topicKey = state.topic ? state.topic.key : null;
+          session.messages = [...state.messages];
+      }
+    }
+
+    function selectTopic(key) {
+      state.topic = topics[key];
+      state.drawerOpen = false;
+      state.drawerMode = "dictionary";
+      state.activeProcessId = null;
+      state.dictQuery = "";
+      state.messages = [{ role: "agent", kind: "warm" }];
+      state.activeView = "chart";
+      state.paramsOpen = false;
+      state.multiExpanded = {};
+      state.loading = false;
+      els.dictSearch.value = "";
+      els.input.value = "";
+      
+      syncSession();
+      render();
+      showToast(`已加载：${state.topic.name}`);
+    }
+
+    function newConversation() {
+      state.currentSessionId = createNewSessionId(); 
+      state.topic = null;
+      state.messages = [];
+      state.drawerOpen = false;
+      state.drawerMode = "dictionary";
+      state.activeProcessId = null;
+      state.loading = false;
+      state.activeView = "chart";
+      state.paramsOpen = false;
+      state.multiExpanded = {};
+      state.topicTree = {
+        behavior: false,
+        payment: false
+      };
+      els.input.value = "";
+      render();
+      showToast("已创建新业务对话");
+    }
+
+    function switchSession(sessionId) {
+      const session = state.sessions.find(s => s.id === sessionId);
+      if (!session) return;
+      
+      document.body.classList.remove("nav-open");
+      state.currentSessionId = session.id;
+      state.topic = session.topicKey ? topics[session.topicKey] : null;
+      
+      if (session.messages && session.messages.length > 0) {
+          state.messages = [...session.messages];
+      } else {
+          state.messages = state.topic ? [{ role: "agent", kind: "warm" }] : [];
+      }
+      
+      state.activeView = "chart";
+      state.paramsOpen = false;
+      state.loading = false;
+      state.multiExpanded = {};
+      state.openDropdownId = null;
+      state.renamingId = null;
+      render();
+      showToast("已恢复历史会话");
+    }
+
+    function enableRename(sessionId) {
+      state.openDropdownId = null; 
+      state.renamingId = sessionId;
+      renderHistory();
+      setTimeout(() => {
+        const input = document.querySelector(`.history-rename-input[data-rename-id="${sessionId}"]`);
+        if (input) {
+          input.focus();
+          input.select();
+        }
+      }, 0);
+    }
+
+    function saveRename(sessionId, newName) {
+       const session = state.sessions.find(s => s.id === sessionId);
+       if (session && newName.trim()) {
+           session.title = newName.trim();
+       }
+       state.renamingId = null;
+       renderHistory();
+       showToast("重命名成功");
+    }
+
+    function classifyQuestion(question) {
+      const q = question.toLowerCase();
+      const topicKey = state.topic ? state.topic.key : '';
+
+      if (q.includes("天气") && (q.includes("售卖情况") || q.includes("分析店铺"))) return "mixed_store_sales";
+
+      if (q.includes("系统异常") || q.includes("timeout") || q.includes("报错") || q.includes("拒付")) return "system_error";
+
+      if (q.includes("售卖情况") || q.includes("店铺最近")) return "store_sales";
+      if (q.includes("同时分析")) return "multi";
+      if (q.includes("文案") || q.includes("天气") || q.includes("小说") || q.includes("翻译") || q.includes("下雨")) return "unrelated";
+      if (topicKey === 'visitor' && (q.includes("gmv") || q.includes("支付") || q.includes("成功率"))) return "topic_mismatch";
+      if (topicKey === 'payment' && (q.includes("访客") || q.includes("转化") || q.includes("roi") || q.includes("投放") || q.includes("杯量"))) return "topic_mismatch";
+      if (q.includes("roi") || q.includes("投放")) return "partial";
+      if (q.includes("火星") || q.includes("不存在") || q.includes("无数据")) return "no_data";
+      if (q.includes("退款") || q.includes("库存") || q.includes("客诉")) return "out_scope";
+      if (q.includes("怎么样") || q.includes("这个") || q.trim().length < 5) return "clarify";
+
+      return "normal";
+    }
+
+    function buildResult(question) {
+      const type = classifyQuestion(question);
+      const topic = state.topic;
+      
+      const base = {
+        type,
+        duration: type === "clarify" || type === "unrelated" ? 2 : 15,
+        status: type === "clarify" ? "需要简单澄清" : type === "system_error" ? "分析失败" : "分析完毕",
+        title: question,
+        conclusion: `昨日${topic.metric}为 5,276.33，${topic.compare}提升 21.40%，近7日整体呈波动上行态势。`,
+        chart: question.includes("渠道") || question.includes("来源") ? "bars" : "line",
+        inferredText: `您未指定明确的时间范围与指标。基于「${topic.name}」，AI 已为您默认查询近7日的${topic.metric}。`
+      };
+
+      if (type === "store_sales") {
+        base.title = "昨日店日均杯量及近7日趋势";
+        base.inferredText = "已根据你的问题提供‘近7日店日均杯量’进行分析";
+        base.metric = "店日均杯量";
+        base.unit = "杯";
+        base.scopeText = `本次将“昨日”按主日期 ${topic.subjectDate} 处理，近7日覆盖 ${topic.dateRange}，指标为店日均杯量。`;
+      }
+
+      if (type === "mixed_store_sales") {
+        base.title = "昨日店日均杯量及近7日趋势";
+        base.inferredText = "已根据你的问题提供‘近7日店日均杯量’进行分析";
+        base.metric = "店日均杯量";
+        base.unit = "杯";
+        base.scopeText = `本次将“昨日”按主日期 ${topic.subjectDate} 处理，近7日覆盖 ${topic.dateRange}，指标为店日均杯量。`;
+        base.partialWarning = "已为您自动拆解问题并提供2个分析内容「近7日店日均杯量」，「近7日各SKU店日均杯量」。由于「广州天气怎么样」不属于数据分析问题，已为您自动忽略。";
+      }
+
+      if (type === "normal" && question.includes("来源渠道")) {
+        base.title = "分析最近7天各来源渠道访客转化率趋势";
+        base.metric = "访客转化率";
+        base.unit = "%";
+        base.chart = "bars";
+        base.displayValue = "34.8";
+        base.compareText = "最高渠道：自然搜索";
+        base.bars = [
+          ["自然搜索", 34.8],
+          ["付费广告", 26.1],
+          ["社媒跳转", 19.6],
+          ["直接访问", 12.4],
+          ["联盟渠道", 7.1]
+        ];
+        base.inferredText = "您未指定明确的时间范围。基于「访客转化分析主题」，AI 已为您默认查询近7日，并按来源渠道拆分访客转化率。";
+        base.scopeText = `本次将“昨日”按主日期 ${topic.subjectDate} 处理，近7日覆盖 ${topic.dateRange}，指标为访客转化率，维度为来源渠道。`;
+      }
+
+      if (type === "normal" && question.includes("支付渠道") && question.includes("支付成功率")) {
+        base.title = "按支付渠道对比近7天支付成功率";
+        base.metric = "支付成功率";
+        base.unit = "%";
+        base.chart = "bars";
+        base.displayValue = "96.2";
+        base.compareText = "最高渠道：Card";
+        base.bars = [
+          ["Card", 96.2],
+          ["Wallet", 93.8],
+          ["Bank Transfer", 89.6],
+          ["Alternative Payment", 84.3]
+        ];
+        base.inferredText = "您未指定明确的时间范围。基于「SHOPLINE Payment正向支付主题」，AI 已为您默认查询近7日，并按支付渠道拆分支付成功率。";
+        base.scopeText = `本次将“昨日”按主日期 ${topic.subjectDate} 处理，近7日覆盖 ${topic.dateRange}，指标为支付成功率，维度为支付渠道。`;
+      }
+
+      if (type === "partial") {
+        base.status = "分析完毕";
+        base.title = "访客转化率趋势（投放ROI暂不支持）";
+        base.conclusion = "可支持访客转化率趋势分析；投放ROI缺少广告成本主题，已在结果中标注为不支持。";
+      }
+
+      if (type === "multi") {
+        base.status = "分析完毕";
+        base.title = "多个分析内容处理结果";
+      }
+
+      return base;
+    }
+
+    function sendQuestion(question) {
+      const clean = question.trim();
+      if (!clean) return;
+      if (!state.topic) {
+        showToast("请先选择一个分析主题");
+        return;
+      }
+      if (state.loading) return;
+
+      state.messages.push({ role: "user", content: clean });
+      state.loading = true;
+      state.activeView = "chart";
+      state.paramsOpen = false;
+      state.multiExpanded = {};
+      els.input.value = "";
+      
+      const shortTitle = clean.length > 18 ? clean.slice(0, 18) + '...' : clean;
+      syncSession(shortTitle);
+      
+      render();
+
+      window.setTimeout(() => {
+        state.loading = false;
+        state.messages.push({
+          id: `msg-${state.messageSeq++}`,
+          role: "agent",
+          kind: "answer",
+          feedback: "",
+          comment: "",
+          result: buildResult(clean)
+        });
+        
+        syncSession();
+        render();
+      }, 760);
+    }
+
+    function showToast(text) {
+      const panel = document.querySelector(".chat-column") || els.stage || document.body;
+      const rect = panel.getBoundingClientRect();
+      els.toast.style.setProperty("--toast-left", `${rect.left + rect.width / 2}px`);
+      els.toast.textContent = text;
+      els.toast.classList.add("show");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => {
+        els.toast.classList.remove("show");
+      }, 1800);
+    }
+
+    function positionChartTooltip(event) {
+      const tooltip = document.getElementById("chartTooltip");
+      if (!tooltip) return;
+      const offset = 15;
+      const rect = tooltip.getBoundingClientRect();
+      let left = event.clientX + offset;
+      let top = event.clientY + offset;
+
+      if (left + rect.width > window.innerWidth - 12) {
+        left = event.clientX - rect.width - offset;
+      }
+      if (top + rect.height > window.innerHeight - 12) {
+        top = event.clientY - rect.height - offset;
+      }
+
+      tooltip.style.left = `${Math.max(12, left)}px`;
+      tooltip.style.top = `${Math.max(12, top)}px`;
+    }
+
+    document.addEventListener("click", event => {
+      const moreBtn = event.target.closest('.history-more-btn');
+      if (moreBtn) {
+         event.stopPropagation();
+         const sid = moreBtn.dataset.moreId;
+         if (state.openDropdownId === sid) {
+             state.openDropdownId = null;
+         } else {
+             state.openDropdownId = sid;
+             const rect = moreBtn.getBoundingClientRect();
+             state.dropdownPos = {
+                 top: (rect.bottom + 4) + 'px',
+                 left: (rect.right - 140) + 'px'
+             };
+         }
+         renderHistory();
+         return;
+      }
+      
+      if (!event.target.closest('.history-dropdown') && !event.target.closest('.history-more-btn')) {
+          if (state.openDropdownId) {
+              state.openDropdownId = null;
+              renderHistory();
+          }
+      }
+
+      const actionBtn = event.target.closest("[data-action]");
+      if (actionBtn) {
+          const action = actionBtn.dataset.action;
+          
+          if (["share", "pin", "rename", "delete"].includes(action)) {
+              const sid = actionBtn.dataset.actionId;
+              state.openDropdownId = null; 
+              
+              if (action === 'rename') {
+                  enableRename(sid);
+              } else if (action === 'delete') {
+                  state.sessions = state.sessions.filter(s => s.id !== sid);
+                  if (state.currentSessionId === sid) {
+                      newConversation();
+                  } else {
+                      renderHistory();
+                  }
+                  showToast("已删除会话");
+              } else if (action === 'share') {
+                  renderHistory();
+                  showToast("已生成分享链接");
+              } else if (action === 'pin') {
+                  renderHistory();
+                  showToast("已置顶该会话");
+              }
+              return;
+          }
+
+          if (action === "toggle-params") {
+            const block = actionBtn.closest('.analysis-block');
+            if (block) {
+                block.classList.toggle('is-open');
+            }
+            return;
+          }
+
+          if (action === "toggle-multi-result") {
+            const key = actionBtn.dataset.multiKey;
+            state.multiExpanded[key] = !state.multiExpanded[key];
+            state.keepScrollPosition = true;
+            render();
+            return;
+          }
+          
+          if (action === "open-process") {
+            state.drawerMode = "process";
+            state.activeProcessId = actionBtn.dataset.processId;
+            state.drawerOpen = true;
+            state.keepScrollPosition = true;
+            render();
+            return;
+          }
+      }
+
+      const domainToggle = event.target.closest("[data-domain-toggle]");
+      if (domainToggle) {
+        const domain = domainToggle.dataset.domainToggle;
+        state.topicTree[domain] = !state.topicTree[domain];
+        state.keepScrollPosition = true;
+        render();
+        return;
+      }
+
+      const topicButton = event.target.closest("[data-topic]");
+      if (topicButton) {
+        selectTopic(topicButton.dataset.topic);
+        return;
+      }
+
+      const questionButton = event.target.closest("[data-question]");
+      if (questionButton) {
+        sendQuestion(questionButton.dataset.question);
+        return;
+      }
+
+      const viewButton = event.target.closest("[data-view]");
+      if (viewButton) {
+        state.activeView = viewButton.dataset.view;
+        state.keepScrollPosition = true;
+        render();
+        return;
+      }
+
+      // 【核心逻辑】：点击反馈按钮
+      const feedbackButton = event.target.closest("[data-feedback-id]");
+      if (feedbackButton) {
+        const msgId = feedbackButton.dataset.feedbackId;
+        const message = state.messages.find(item => item.id === msgId);
+        if (!message) return;
+        const nextFeedback = feedbackButton.dataset.feedback;
+        
+        if (message.feedback !== nextFeedback) {
+          message.feedback = nextFeedback;
+          message.savedComments = []; 
+          message.commentDraft = "";
+          message.comment = "";
+        } else {
+          message.feedback = "";
+          message.savedComments = [];
+          message.commentDraft = "";
+          message.comment = "";
+        }
+        
+        syncSession();
+        state.keepScrollPosition = true; // 阻止默认瞬间置底
+        render();
+        showToast(message.feedback === "like" ? "已赞，可补充评论" : message.feedback === "dislike" ? "已踩，可补充评论" : "已取消评价");
+        
+        // 核心优化：平滑滚动到评论区并聚焦
+        if (message.feedback) {
+          setTimeout(() => {
+            const commentInput = document.querySelector(`[data-comment-input="${msgId}"]`);
+            if (commentInput) {
+              const feedbackWrap = commentInput.closest('.answer-feedback');
+              if (feedbackWrap) {
+                // 丝滑滚动到可视区域的底部
+                feedbackWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              }
+              // 自动聚焦输入框引导用户输入
+              setTimeout(() => {
+                commentInput.focus();
+              }, 150);
+            }
+          }, 30);
+        }
+        
+        return;
+      }
+
+      const commentSaveButton = event.target.closest("[data-comment-save]");
+      if (commentSaveButton) {
+        const message = state.messages.find(item => item.id === commentSaveButton.dataset.commentSave);
+        if (!message) return;
+        const input = document.querySelector(`[data-comment-input="${message.id}"]`);
+        const textVal = input ? input.value.trim() : "";
+        
+        if (textVal) {
+          if (!message.savedComments) message.savedComments = [];
+          const now = new Date();
+          const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+          
+          message.savedComments.push({ text: textVal, time: timeStr });
+          message.commentDraft = ""; 
+          syncSession();
+          state.keepScrollPosition = true;
+          render();
+          showToast("评论已保存");
+        } else {
+          showToast("评论不能为空");
+        }
+        return;
+      }
+
+      if (event.target.closest("#openDrawer")) {
+        state.drawerMode = "dictionary";
+        state.drawerOpen = true;
+        state.keepScrollPosition = true;
+        render();
+        return;
+      }
+
+      if (event.target.closest("#closeDrawer")) {
+        state.drawerOpen = false;
+        state.keepScrollPosition = true;
+        render();
+        return;
+      }
+
+      const historyButton = event.target.closest("[data-session-id]");
+      if (historyButton) {
+        switchSession(historyButton.dataset.sessionId);
+      }
+    });
+
+    document.addEventListener("dblclick", event => {
+       const historyText = event.target.closest(".history-text");
+       if (historyText) {
+          const btn = historyText.closest(".history-item");
+          if (btn) {
+              enableRename(btn.dataset.sessionId);
+          }
+       }
+    });
+
+    document.addEventListener('focusout', e => {
+       if (e.target.classList.contains('history-rename-input')) {
+           saveRename(e.target.dataset.renameId, e.target.value);
+       }
+    });
+
+    document.addEventListener("input", event => {
+      const commentInput = event.target.closest("[data-comment-input]");
+      if (!commentInput) return;
+      const message = state.messages.find(item => item.id === commentInput.dataset.commentInput);
+      if (message) {
+        message.commentDraft = commentInput.value;
+      }
+      const saveButton = document.querySelector(`[data-comment-save="${commentInput.dataset.commentInput}"]`);
+      if (saveButton) {
+        saveButton.disabled = !commentInput.value.trim();
+      }
+      resizeCommentTextareas(commentInput.parentElement || document);
+    });
+
+    document.querySelector('.history').addEventListener('scroll', () => {
+      if (state.openDropdownId) {
+         state.openDropdownId = null;
+         renderHistory();
+      }
+    }, {passive: true});
+
+    document.getElementById("newChat").addEventListener("click", () => {
+      document.body.classList.remove("nav-open");
+      newConversation();
+    });
+
+    document.getElementById("quickInsightEntry").addEventListener("click", () => {
+      document.body.classList.remove("nav-open");
+      showToast("已进入 QuickInsight");
+    });
+
+    document.getElementById("menuButton").addEventListener("click", () => {
+      const isOpen = document.body.classList.toggle("nav-open");
+      showToast(isOpen ? "侧边栏已展开" : "侧边栏已收起");
+    });
+
+    document.addEventListener("click", event => {
+      if (!document.body.classList.contains("nav-open")) return;
+      if (event.target.closest(".platform-menu") || event.target.closest(".sidebar") || event.target.closest("#menuButton")) return;
+      document.body.classList.remove("nav-open");
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") {
+        document.body.classList.remove("nav-open");
+      }
+      if (event.target.classList.contains('history-rename-input') && event.key === 'Enter') {
+         saveRename(event.target.dataset.renameId, event.target.value);
+      }
+    });
+
+    document.addEventListener("mouseover", event => {
+      const point = event.target.closest(".chart-point");
+      if (!point) return;
+
+      const tooltip = document.getElementById("chartTooltip");
+      if (!tooltip) return;
+
+      const date = point.dataset.date || "-";
+      const metric = point.dataset.metric || "指标";
+      const value = point.dataset.value || "-";
+      const unit = point.dataset.unit || "";
+
+      tooltip.innerHTML = `
+        <div class="chart-tooltip-context">日期: ${escapeHtml(date)}</div>
+        <div class="chart-tooltip-metric">${escapeHtml(metric)}: <span class="chart-tooltip-value">${escapeHtml(value)}${escapeHtml(unit)}</span></div>
+      `;
+      tooltip.setAttribute("aria-hidden", "false");
+      tooltip.classList.add("show");
+      positionChartTooltip(event);
+    });
+
+    document.addEventListener("mousemove", event => {
+      if (!event.target.closest(".chart-point")) return;
+      positionChartTooltip(event);
+    });
+
+    document.addEventListener("mouseout", event => {
+      const point = event.target.closest(".chart-point");
+      if (!point) return;
+      const tooltip = document.getElementById("chartTooltip");
+      if (!tooltip) return;
+      tooltip.classList.remove("show");
+      tooltip.setAttribute("aria-hidden", "true");
+    });
+
+    els.composer.addEventListener("submit", event => {
+      event.preventDefault();
+      sendQuestion(els.input.value);
+    });
+
+    els.input.addEventListener("keydown", event => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendQuestion(els.input.value);
+      }
+    });
+
+    els.dictSearch.addEventListener("input", event => {
+      state.dictQuery = event.target.value;
+      renderDictionary();
+    });
+
+    els.clearDictSearch.addEventListener("click", () => {
+      state.dictQuery = "";
+      els.dictSearch.value = "";
+      renderDictionary();
+      els.dictSearch.focus();
+    });
+
+    render();
+  </script>
+</body>
+</html>
